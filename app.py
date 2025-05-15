@@ -79,12 +79,14 @@ a {
 </style>
 """, unsafe_allow_html=True)
 
+
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
     chunks: List[Dict] = load_chunks(jsonl_path)
     contents = [chunk["content"] for chunk in chunks]
     embeddings = create_embeddings(contents)
     return chunks, embeddings
+
 
 chunks, embeddings = initialize_rag()
 
