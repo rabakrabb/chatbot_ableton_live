@@ -35,53 +35,55 @@ st.markdown(
     }
 
     /* App-rutan som ligger ovanpå bakgrunden */
-    section.main {
-        max-width: 800px !important;
-        width: 800px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        background-color: #e0f7f9 !important;  /* ljus turkos */
-        color: #003a3f !important;              /* mörk text */
-        padding: 30px 40px !important;          /* lite mer luft */
-        border-radius: 12px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    .app-container {
+        max-width: 800px;
+        width: 90vw;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: #e0f7f9;  /* ljus turkos */
+        color: #003a3f;              /* mörk text */
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         position: relative;
         z-index: 10;
+        margin-top: 40px;
+        margin-bottom: 40px;
     }
 
     /* Titlar */
     h1, h2, h3 {
-        color: #ff6f61 !important;  /* korall */
-        font-weight: 700 !important;
+        color: #ff6f61;  /* korall */
+        font-weight: 700;
     }
 
     /* Text input */
     .stTextInput > div > div > input {
-        border: 2px solid #00bcd4 !important;
-        border-radius: 6px !important;
-        padding: 8px !important;
-        color: #003a3f !important;
-        background-color: white !important;
+        border: 2px solid #00bcd4;
+        border-radius: 6px;
+        padding: 8px;
+        color: #003a3f;
+        background-color: white;
     }
 
     /* Knappar */
     div.stButton > button {
-        background-color: #ff6f61 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 6px !important;
-        padding: 8px 16px !important;
-        font-weight: 600 !important;
-        cursor: pointer !important;
-        transition: background-color 0.3s ease !important;
+        background-color: #ff6f61;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
     div.stButton > button:hover {
-        background-color: #e65b50 !important;
+        background-color: #e65b50;
     }
 
     /* Länkfärg */
     a {
-        color: #ff6f61 !important;
+        color: #ff6f61;
     }
     </style>
 
@@ -89,7 +91,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
@@ -99,6 +100,9 @@ def initialize_rag(jsonl_path: str = "chunks.jsonl"):
     return chunks, embeddings
 
 chunks, embeddings = initialize_rag()
+
+# Wrap hela appens innehåll i app-container-div
+st.markdown('<div class="app-container">', unsafe_allow_html=True)
 
 st.title("The Ableton Live 12 MIDI RAG-Bot")
 query = st.text_input("Ask your question:")
@@ -111,3 +115,5 @@ if query:
     answer = generate_response(query, context)
     st.markdown("### Answer:")
     st.write(answer)
+
+st.markdown('</div>', unsafe_allow_html=True)
