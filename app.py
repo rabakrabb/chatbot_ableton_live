@@ -41,5 +41,5 @@ if query:
     context = "\n\n".join(top_texts)
     # 3) generera svar
     answer = generate_response(query, context)
-    st.markdown("### Answer:")
+    # st.markdown("### Answer:")
     st.write(answer)
