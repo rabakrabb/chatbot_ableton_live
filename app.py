@@ -10,17 +10,63 @@ from llm_utils import generate_response
 from rag_utils import create_embeddings, load_chunks
 
 # ---- sidinställningar ----
-st.set_page_config(page_title="The Ableton Live 12 MIDI RAG-Bot", layout="wide")
+st.set_page_config(
+    page_title="The Ableton Live 12 MIDI RAG-Bot",
+    layout="centered",  # centrera appen smidigt
+    initial_sidebar_state="auto",
+    page_icon="🎹",
+)
+
 load_dotenv()
 
-# Lägg till CSS för att begränsa bredden på huvudinnehållet
+# FIXERAD BREDD på app-rutan + färgtema turkost/korall
 st.markdown(
     """
     <style>
-    .main-content {
-        max-width: 800px;  /* Justera detta värde för önskad maxbredd */
+    /* Fixerad bredd och centrerad app */
+    section.main {
+        max-width: 800px;
+        width: 800px;
         margin-left: auto;
         margin-right: auto;
+    }
+
+    /* Bakgrund och text */
+    .main {
+        background-color: #e0f7f9;  /* mjuk turkos */
+        color: #003a3f;  /* mörkare turkos/sjögrön */
+    }
+
+    /* Titlar */
+    h1, h2, h3 {
+        color: #ff6f61;  /* varm korall/orange - motsatsfärg */
+        font-weight: 700;
+    }
+
+    /* Text input och knappar */
+    .stTextInput > div > div > input {
+        border: 2px solid #00bcd4;  /* klar turkos kant */
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    div.stButton > button {
+        background-color: #ff6f61;  /* korall */
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    div.stButton > button:hover {
+        background-color: #e65b50; /* lite mörkare korall vid hover */
+    }
+
+    /* Länkfärg */
+    a {
+        color: #ff6f61;
     }
     </style>
     """,
@@ -29,34 +75,21 @@ st.markdown(
 
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
-    """
-    1) Läser in chunk‐metadata (utan embeddings) från JSONL.
-    2) Skapar embedding för varje chunk.content.
-    """
-    # Läs in chunk‐poster
     chunks: List[Dict] = load_chunks(jsonl_path)
-    # Extrahera bara innehållet
     contents = [chunk["content"] for chunk in chunks]
-    # Skapa embeddingar (enligt rag_utils.create_embeddings)
     embeddings = create_embeddings(contents)
     return chunks, embeddings
 
 chunks, embeddings = initialize_rag()
 
-# Använd en div med klassen "main-content" för att begränsa bredden
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
 st.title("The Ableton Live 12 MIDI RAG-Bot")
 query = st.text_input("Ask your question:")
 
 if query:
-    # 1) embedda själva frågan
     query_emb = create_embeddings([query])[0]
-    # 2) semantisk sökning bland dina chunk‐embeddings
     texts = [chunk["content"] for chunk in chunks]
     top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
     context = "\n\n".join(top_texts)
-    # 3) generera svar
     answer = generate_response(query, context)
     st.markdown("### Answer:")
     st.write(answer)
-st.markdown('</div>', unsafe_allow_html=True)  # Avsluta div:en
