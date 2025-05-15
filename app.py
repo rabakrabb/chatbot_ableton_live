@@ -1,15 +1,12 @@
 import streamlit as st
-import json
-import os
 from typing import List, Dict
 from dotenv import load_dotenv
 
-# ---- dina egna moduler ----
+# Egna moduler
 from semantic_search import semantic_search
 from llm_utils import generate_response
 from rag_utils import create_embeddings, load_chunks
 
-# ---- sidinställningar ----
 st.set_page_config(
     page_title="The Ableton Live 12 MIDI RAG-Bot",
     layout="centered",
@@ -22,21 +19,20 @@ load_dotenv()
 st.markdown(
     """
     <style>
-    /* Bakgrund för hela appen */
+    /* Sida bakgrund: mörkturkos */
     .css-1d391kg {
         background-color: #004d4d !important;  /* mörk turkos */
-        color: #e0f7f9 !important;              /* ljus turkos text */
         min-height: 100vh;
     }
 
-    /* Centrerad app-ruta */
+    /* App-ruta: ljus turkos med rundade hörn och skugga */
     section.main {
         max-width: 800px !important;
         width: 800px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        background-color: #d0f0f7 !important;  /* mjuk ljus turkos */
-        color: #003a3f !important;              /* mörk text i rutan */
+        background-color: #e0f7f9 !important;  /* ljus turkos */
+        color: #003a3f !important;              /* mörk turkos text */
         padding: 30px 40px !important;
         border-radius: 12px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
@@ -44,22 +40,22 @@ st.markdown(
         z-index: 10;
     }
 
-    /* Titlar */
+    /* Rubriker: korall */
     h1, h2, h3 {
-        color: #ff6f61 !important;  /* varm korall */
+        color: #ff6f61 !important;  /* korall */
         font-weight: 700 !important;
     }
 
-    /* Text input */
+    /* Textinput: vit bakgrund med turkos kant */
     .stTextInput > div > div > input {
         background-color: white !important;
         color: #003a3f !important;
-        border: 2px solid #00bcd4 !important;
+        border: 2px solid #00bcd4 !important;  /* klar turkos kant */
         border-radius: 6px !important;
         padding: 8px !important;
     }
 
-    /* Knappar */
+    /* Knappar: korall bakgrund och vit text */
     div.stButton > button {
         background-color: #ff6f61 !important;
         color: white !important;
@@ -71,10 +67,10 @@ st.markdown(
         transition: background-color 0.3s ease !important;
     }
     div.stButton > button:hover {
-        background-color: #e65b50 !important;
+        background-color: #e65b50 !important;  /* lite mörkare korall */
     }
 
-    /* Länkfärg */
+    /* Länkar: korall */
     a {
         color: #ff6f61 !important;
     }
