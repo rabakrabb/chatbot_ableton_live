@@ -145,3 +145,9 @@ def chunk_text_from_file(input_path: str, output_path: str):
             out_file.write("\n")
 
     print(f"Chunkning klar! {len(chunks)} chunks sparade i '{output_path}'.")
+    
+
+# if __name__ == "__main__":
+#    input_path = "data/extracted_midi_chapters.txt"
+#    output_path = "chunks.jsonl"
+#    chunk_text_from_file(input_path, output_path)
