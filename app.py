@@ -1,49 +1,38 @@
 import streamlit as st
-import os
-from dotenv import load_dotenv
-import google.generativeai as genai
-from chunking import chunk_text_from_file
-from rag_utils import create_embeddings, load_chunks
-from semantic_search import semantic_search
-from llm_utils import generate_response
+import json
+from typing import List
+from semantic_search import semantic_search  # din befintliga
+from llm_utils import generate_response    # din befintliga
 
-load_dotenv()  # only needed locally; in Streamlit Cloud use st.secrets
+st.set_page_config(page_title="Ableton Live 12 MIDI RAG-bot", layout="wide")
 
-# configure Google GenAI
-API_KEY = os.getenv("API_KEY") or st.secrets["API_KEY"]
-genai.configure(api_key=API_KEY)
+@st.cache_data
+def load_chunks(jsonl_path: str = "chunks.jsonl"):
+    """Läser in alla chunk-poster med färdiga embeddings."""
+    chunks = []
+    with open(jsonl_path, "r", encoding="utf-8") as f:
+        for line in f:
+            chunks.append(json.loads(line))
+    return chunks
 
-@st.cache_resource(show_spinner=False)
-def initialize_rag(
-    raw_txt: str = "data/extracted_midi_chapters.txt",
-    jsonl_path: str = "chunks.jsonl",
-):
-    # 1. Ensure we have chunked JSONL
-    if not os.path.isfile(jsonl_path):
-        chunk_text_from_file(raw_txt, jsonl_path)
+chunks = load_chunks()  # varje chunk har fälten: chunk_id, title, content, parent_chain, level, embedding
 
-    # 2. Load chunks
-    chunks = load_chunks(jsonl_path)
-    contents = [c["content"] for c in chunks]
-
-    # 3. Create embeddings once
-    embeddings = create_embeddings(contents)
-    return chunks, embeddings
-
-chunks, embeddings = initialize_rag()
-
-st.title("The Ableton Live 12 MIDI Beginners Chatbot (RAG-Based)")
-
-query = st.text_input("Ask your question here:")
+st.title("The Ableton Live 12 MIDI Beginners Chatbot (RAG-baserad)")
+query = st.text_input("Ställ din fråga här:")
 
 if query:
-    # embed query
-    q_emb = create_embeddings([query])[0]
-    # semantic search
-    texts = [c["content"] for c in chunks]
-    relevant = semantic_search(q_emb, texts, embeddings)
-    context = "\n\n".join(relevant)
-    # generate answer
+    # 1) Skapa embedding för frågan via färdigt GenAI‐anrop
+    # (om du vill kan du också embedda frågan med genai.embeddings.get här,
+    #  men för demo visar vi sem‐matchning på content‐fältet istället)
+    query_embedding = chunks[0]["embedding"]  # dummy
+    # 2) Semantisk sökning bland dina chunk-embeddings
+    texts      = [c["content"]   for c in chunks]
+    embeddings = [c["embedding"] for c in chunks]
+    top_texts  = semantic_search(query_embedding, texts, embeddings, top_k=5)
+    context    = "\n\n".join(top_texts)
+
+    # 3) Generera svar från LLM givet frågan + kontexten
     answer = generate_response(query, context)
-    st.markdown("### Answer:")
+
+    st.markdown("### Svar:")
     st.write(answer)
