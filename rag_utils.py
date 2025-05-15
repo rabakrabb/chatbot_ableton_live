@@ -4,18 +4,28 @@ import json
 import google.generativeai as genai
 
 def create_embeddings(texts: List[str]) -> List[List[float]]:
+    """Skapar embeddings för en lista av texter."""
     genai.configure(api_key=st.secrets["API_KEY"])
-    model = genai.GenerativeModel("models/embedding-001") # Changed from EmbeddingModel to GenerativeModel
+    model = genai.GenerativeModel(model_name="models/embedding-001")
     embeddings = []
     for text in texts:
-        response = model.embed_content(text) #changed from model.embed_content
-        embeddings.append(response["embedding"]) # changed from response.embedding to response["embedding"]
+        try:
+            response = model.embed_content(text=text)
+            embeddings.append(response.embedding)
+        except Exception as e:
+            print(f"Error generating embedding for text: {text}")
+            print(f"Error details: {e}")
+            embeddings.append([])
     return embeddings
 
-
 def load_chunks(jsonl_path: str) -> List[Dict]:
-    chunks: List[Dict] = []
-    with open(jsonl_path, "r", encoding="utf-8") as f:
-        for line in f:
-            chunks.append(json.loads(line))
+    """Läser in chunk-data från en JSONL-fil."""
+    chunks = []
+    try:
+        with open(jsonl_path, "r", encoding="utf-8") as f:
+            for line in f:
+                chunks.append(json.loads(line))
+    except FileNotFoundError:
+        print(f"Error: File not found at {jsonl_path}")
+        return []  # Return an empty list to avoid further errors
     return chunks
