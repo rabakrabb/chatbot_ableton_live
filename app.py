@@ -23,25 +23,30 @@ load_dotenv()
 st.markdown(
     """
     <style>
-    /* Bakgrund för hela sidan */
-    html, body, .main {
-        background-color: #004d4d !important;  /* mörkare teal/turkos */
-        height: 100%;
-        margin: 0;
-        padding: 0;
+    /* Fullscreen bakgrund div som ligger bakom allt */
+    .app-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #004d4d;
+        z-index: 0;
     }
 
-    /* Fixerad bredd och centrerad app */
+    /* App-rutan som ligger ovanpå */
     section.main {
         max-width: 800px !important;
         width: 800px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        background-color: #e0f7f9 !important;  /* ljus turkos */
-        color: #003a3f !important;              /* mörk turkos text */
+        background-color: #e0f7f9 !important;
+        color: #003a3f !important;
         padding: 20px 30px !important;
         border-radius: 10px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        position: relative;
+        z-index: 10;
     }
 
     /* Titlar */
@@ -79,9 +84,12 @@ st.markdown(
         color: #ff6f61 !important;
     }
     </style>
+
+    <div class="app-background"></div>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 @st.cache_data(show_spinner=False)
