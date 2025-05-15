@@ -25,53 +25,58 @@ st.markdown(
     <style>
     /* Fixerad bredd och centrerad app */
     section.main {
-        max-width: 800px;
-        width: 800px;
-        margin-left: auto;
-        margin-right: auto;
+        max-width: 800px !important;
+        width: 800px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        background-color: #e0f7f9 !important;  /* mjuk turkos bakgrund */
+        color: #003a3f !important;               /* mörk turkos text */
     }
 
-    /* Bakgrund och text */
-    .main {
-        background-color: #e0f7f9;  /* mjuk turkos */
-        color: #003a3f;  /* mörkare turkos/sjögrön */
+    div.block-container {
+        background-color: #e0f7f9 !important;
+        color: #003a3f !important;
     }
 
     /* Titlar */
     h1, h2, h3 {
-        color: #ff6f61;  /* varm korall/orange - motsatsfärg */
-        font-weight: 700;
+        color: #ff6f61 !important;  /* varm korall/orange */
+        font-weight: 700 !important;
     }
 
-    /* Text input och knappar */
+    /* Text input */
     .stTextInput > div > div > input {
-        border: 2px solid #00bcd4;  /* klar turkos kant */
-        border-radius: 6px;
-        padding: 8px;
+        border: 2px solid #00bcd4 !important;  /* klar turkos kant */
+        border-radius: 6px !important;
+        padding: 8px !important;
+        color: #003a3f !important;
+        background-color: white !important;
     }
 
+    /* Knappar */
     div.stButton > button {
-        background-color: #ff6f61;  /* korall */
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+        background-color: #ff6f61 !important;  /* korall */
+        color: white !important;
+        border: none !important;
+        border-radius: 6px !important;
+        padding: 8px 16px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: background-color 0.3s ease !important;
     }
     div.stButton > button:hover {
-        background-color: #e65b50; /* lite mörkare korall vid hover */
+        background-color: #e65b50 !important; /* mörkare korall vid hover */
     }
 
     /* Länkfärg */
     a {
-        color: #ff6f61;
+        color: #ff6f61 !important;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
