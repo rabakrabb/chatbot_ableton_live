@@ -19,31 +19,31 @@ st.set_page_config(
 
 load_dotenv()
 
-# FIXERAD BREDD på app-rutan + färgtema turkost/korall
+# FIXERAD BREDD på app-rutan + färgtema turkost/korall + mörkturkos bakgrund
 st.markdown(
     """
     <style>
-    /* Fullscreen bakgrund div som ligger bakom allt */
+    /* Fullscreen bakgrund som ligger bakom allt */
     .app-background {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: #004d4d;
+        background-color: #004d4d;  /* mörk turkos */
         z-index: 0;
     }
 
-    /* App-rutan som ligger ovanpå */
+    /* App-rutan som ligger ovanpå bakgrunden */
     section.main {
         max-width: 800px !important;
         width: 800px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        background-color: #e0f7f9 !important;
-        color: #003a3f !important;
-        padding: 20px 30px !important;
-        border-radius: 10px !important;
+        background-color: #e0f7f9 !important;  /* ljus turkos */
+        color: #003a3f !important;              /* mörk text */
+        padding: 30px 40px !important;          /* lite mer luft */
+        border-radius: 12px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
         position: relative;
         z-index: 10;
@@ -51,7 +51,7 @@ st.markdown(
 
     /* Titlar */
     h1, h2, h3 {
-        color: #ff6f61 !important;
+        color: #ff6f61 !important;  /* korall */
         font-weight: 700 !important;
     }
 
@@ -89,7 +89,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 
 @st.cache_data(show_spinner=False)
