@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # ---- dina egna moduler ----
 from semantic_search import semantic_search
 from llm_utils import generate_response
-from rag_utils import create_embeddings, load_chunks
+from rag_utils import create_embeddings, load_chunks # Se till att du importerar både create_embeddings och load_chunks
 
 # ---- sidinställningar ----
 st.set_page_config(page_title="The Ableton Live 12 MIDI RAG-Bot", layout="wide")
@@ -30,7 +30,7 @@ def initialize_rag(jsonl_path: str = "chunks.jsonl"):
 chunks, embeddings = initialize_rag()
 
 st.title("The Ableton Live 12 MIDI RAG-Bot")
-query = st.text_input("Ask your question here:")
+query = st.text_input("Ask you question:")
 
 if query:
     # 1) embedda själva frågan
