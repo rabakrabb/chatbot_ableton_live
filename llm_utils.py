@@ -1,12 +1,9 @@
-import google.generativeai as genai  # OBS! rätt modul
+import google.generativeai as genai
 import streamlit as st
-from typing import Union, List
 
-genai.configure(api_key=st.secrets.API_KEY)  # ✅ NY korrekt syntax
+genai.configure(api_key=st.secrets["API_KEY"])  # Viktigt med hakparenteser
 
-def generate_response(
-    query: str, context: Union[str, List[str]], model_name: str = "gemini-2.0-flash"
-) -> str:
+def generate_response(query, context, model_name="gemini-2.0-flash"):
     if isinstance(context, list):
         context_text = "\n\n".join(context)
     else:
