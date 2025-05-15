@@ -16,39 +16,45 @@ st.set_page_config(
 
 load_dotenv()
 
+# --- CSS styling ---
 st.markdown("""
 <style>
-body {
+/* Sätt mörk turkos bakgrund på hela sidan */
+body, .css-18e3th9 {
     background-color: #004d4d !important;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
+    margin: 0; padding: 0; min-height: 100vh;
 }
 
+/* Vår app-container */
 .app-container {
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
-    background-color: #e0f7f9 !important;
-    color: #003a3f !important;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    background-color: #e0f7f9 !important; /* ljus turkos */
+    color: #003a3f !important;             /* mörk turkos text */
     padding: 30px 40px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* Rubriker korall */
 h1, h2, h3 {
     color: #ff6f61 !important;
     font-weight: 700 !important;
 }
 
+/* Textinput */
 .stTextInput > div > div > input {
     background-color: white !important;
     color: #003a3f !important;
-    border: 2px solid #00bcd4 !important;
+    border: 2px solid #00bcd4 !important;  /* klar turkos kant */
     border-radius: 6px !important;
     padding: 8px !important;
 }
 
+/* Knappar */
 div.stButton > button {
     background-color: #ff6f61 !important;
     color: white !important;
@@ -59,11 +65,11 @@ div.stButton > button {
     cursor: pointer !important;
     transition: background-color 0.3s ease !important;
 }
-
 div.stButton > button:hover {
     background-color: #e65b50 !important;
 }
 
+/* Länkar */
 a {
     color: #ff6f61 !important;
 }
@@ -79,6 +85,7 @@ def initialize_rag(jsonl_path: str = "chunks.jsonl"):
 
 chunks, embeddings = initialize_rag()
 
+# --- Omslut allt i vår app-container ---
 st.markdown('<div class="app-container">', unsafe_allow_html=True)
 
 st.title("The Ableton Live 12 MIDI RAG-Bot")
