@@ -1,6 +1,4 @@
 import streamlit as st
-import json
-import os
 from typing import List, Dict
 from dotenv import load_dotenv
 
@@ -12,43 +10,23 @@ from rag_utils import create_embeddings, load_chunks
 # ---- sidinställningar ----
 st.set_page_config(
     page_title="The Ableton Live 12 MIDI RAG-Bot",
-    layout="centered",  # centrera appen smidigt
+    layout="centered",
     initial_sidebar_state="auto",
     page_icon="🎹",
 )
 
 load_dotenv()
 
-# FIXERAD BREDD på app-rutan + färgtema turkost/korall + mörkturkos bakgrund
+# Enkelt mörkt tema med ljus text
 st.markdown(
     """
     <style>
-    /* Fullscreen bakgrund som ligger bakom allt */
-    .app-background {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+    /* Bakgrund och textfärg för hela sidan */
+    .main {
         background-color: #004d4d;  /* mörk turkos */
-        z-index: 0;
-    }
-
-    /* App-rutan som ligger ovanpå bakgrunden */
-    .app-container {
-        max-width: 800px;
-        width: 90vw;
-        margin-left: auto;
-        margin-right: auto;
-        background-color: #e0f7f9;  /* ljus turkos */
-        color: #003a3f;              /* mörk text */
-        padding: 30px 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        position: relative;
-        z-index: 10;
-        margin-top: 40px;
-        margin-bottom: 40px;
+        color: #e0f7f9;             /* ljus turkos */
+        padding: 2rem 3rem;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
 
     /* Titlar */
@@ -57,13 +35,13 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* Text input */
+    /* Textinput */
     .stTextInput > div > div > input {
+        background-color: #006666; /* mörkare turkos */
+        color: #e0f7f9;
         border: 2px solid #00bcd4;
         border-radius: 6px;
         padding: 8px;
-        color: #003a3f;
-        background-color: white;
     }
 
     /* Knappar */
@@ -86,8 +64,6 @@ st.markdown(
         color: #ff6f61;
     }
     </style>
-
-    <div class="app-background"></div>
     """,
     unsafe_allow_html=True,
 )
@@ -101,9 +77,6 @@ def initialize_rag(jsonl_path: str = "chunks.jsonl"):
 
 chunks, embeddings = initialize_rag()
 
-# Wrap hela appens innehåll i app-container-div
-st.markdown('<div class="app-container">', unsafe_allow_html=True)
-
 st.title("The Ableton Live 12 MIDI RAG-Bot")
 query = st.text_input("Ask your question:")
 
@@ -115,5 +88,3 @@ if query:
     answer = generate_response(query, context)
     st.markdown("### Answer:")
     st.write(answer)
-
-st.markdown('</div>', unsafe_allow_html=True)
