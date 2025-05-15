@@ -24,8 +24,11 @@ st.markdown(
     """
     <style>
     /* Bakgrund för hela sidan */
-    body, .css-18e3th9 {
+    html, body, .main {
         background-color: #004d4d !important;  /* mörkare teal/turkos */
+        height: 100%;
+        margin: 0;
+        padding: 0;
     }
 
     /* Fixerad bredd och centrerad app */
@@ -35,26 +38,21 @@ st.markdown(
         margin-left: auto !important;
         margin-right: auto !important;
         background-color: #e0f7f9 !important;  /* ljus turkos */
-        color: #003a3f !important;               /* mörk turkos text */
+        color: #003a3f !important;              /* mörk turkos text */
         padding: 20px 30px !important;
         border-radius: 10px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;  /* lite skugga */
-    }
-
-    div.block-container {
-        background-color: #e0f7f9 !important;
-        color: #003a3f !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
 
     /* Titlar */
     h1, h2, h3 {
-        color: #ff6f61 !important;  /* varm korall/orange */
+        color: #ff6f61 !important;
         font-weight: 700 !important;
     }
 
     /* Text input */
     .stTextInput > div > div > input {
-        border: 2px solid #00bcd4 !important;  /* klar turkos kant */
+        border: 2px solid #00bcd4 !important;
         border-radius: 6px !important;
         padding: 8px !important;
         color: #003a3f !important;
@@ -63,7 +61,7 @@ st.markdown(
 
     /* Knappar */
     div.stButton > button {
-        background-color: #ff6f61 !important;  /* korall */
+        background-color: #ff6f61 !important;
         color: white !important;
         border: none !important;
         border-radius: 6px !important;
@@ -73,7 +71,7 @@ st.markdown(
         transition: background-color 0.3s ease !important;
     }
     div.stButton > button:hover {
-        background-color: #e65b50 !important; /* mörkare korall vid hover */
+        background-color: #e65b50 !important;
     }
 
     /* Länkfärg */
@@ -84,7 +82,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 
 @st.cache_data(show_spinner=False)
