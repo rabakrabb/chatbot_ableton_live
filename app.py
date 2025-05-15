@@ -23,14 +23,22 @@ load_dotenv()
 st.markdown(
     """
     <style>
+    /* Bakgrund för hela sidan */
+    body, .css-18e3th9 {
+        background-color: #004d4d !important;  /* mörkare teal/turkos */
+    }
+
     /* Fixerad bredd och centrerad app */
     section.main {
         max-width: 800px !important;
         width: 800px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        background-color: #e0f7f9 !important;  /* mjuk turkos bakgrund */
+        background-color: #e0f7f9 !important;  /* ljus turkos */
         color: #003a3f !important;               /* mörk turkos text */
+        padding: 20px 30px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;  /* lite skugga */
     }
 
     div.block-container {
@@ -76,6 +84,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 
 @st.cache_data(show_spinner=False)
