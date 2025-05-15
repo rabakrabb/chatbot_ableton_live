@@ -5,14 +5,11 @@ import google.generativeai as genai
 
 def create_embeddings(texts: List[str]) -> List[List[float]]:
     genai.configure(api_key=st.secrets["API_KEY"])
-
-    embedding_model = genai.embedder.EmbeddingModel(model_name="models/embedding-001")
-
+    model = genai.GenerativeModel("models/embedding-001") # Changed from EmbeddingModel to GenerativeModel
     embeddings = []
     for text in texts:
-        response = embedding_model.embed(content=text)
-        embeddings.append(response['embedding'])
-
+        response = model.embed_content(text) #changed from model.embed_content
+        embeddings.append(response["embedding"]) # changed from response.embedding to response["embedding"]
     return embeddings
 
 
