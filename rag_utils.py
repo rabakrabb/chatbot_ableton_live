@@ -6,17 +6,20 @@ import google.generativeai as genai
 def create_embeddings(texts: List[str]) -> List[List[float]]:
     """Skapar embeddings för en lista av texter."""
     genai.configure(api_key=st.secrets["API_KEY"])
-    model = genai.GenerativeModel(model_name="models/embedding-001")
+
+    embedding_model = genai.GenerativeModel(model_name="models/embedding-001")
+
     embeddings = []
     for text in texts:
         try:
-            response = model.embed_content(text=text)
-            embeddings.append(response.embedding)
+            response = embedding_model.embed_content(content=text)
+            embeddings.append(response['embedding'])
         except Exception as e:
             print(f"Error generating embedding for text: {text}")
             print(f"Error details: {e}")
             embeddings.append([])
     return embeddings
+
 
 def load_chunks(jsonl_path: str) -> List[Dict]:
     """Läser in chunk-data från en JSONL-fil."""

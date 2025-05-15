@@ -30,7 +30,7 @@ def initialize_rag(jsonl_path: str = "chunks.jsonl"):
 chunks, embeddings = initialize_rag()
 
 st.title("The Ableton Live 12 MIDI RAG-Bot")
-query = st.text_input("Ask you question:")
+query = st.text_input("Ask your question here:")
 
 if query:
     # 1) embedda själva frågan
