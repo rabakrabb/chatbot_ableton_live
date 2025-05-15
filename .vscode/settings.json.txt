@@ -1,0 +1,4 @@
+// .vscode/settings.json
+{
+  "python.pythonPath": "chatbot\\Scripts\\python.exe"
+}
