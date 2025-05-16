@@ -16,25 +16,25 @@ st.set_page_config(
 
 load_dotenv()
 
-# --- CSS styling med textfärgs-justeringar ---
+# --- CSS styling ---
 st.markdown("""
 <style>
 :root {
-    --primaryColor: #FF6F61;             /* Korall */
-    --backgroundColor: #004D4D;          /* Mörk turkos */
-    --secondaryBackgroundColor: #006666; /* Mörkare sekundär */
+    --primaryColor: #FF6F61;
+    --backgroundColor: #004D4D;
+    --secondaryBackgroundColor: #006666;
     --font-family: "Arial, sans-serif";
 }
 
-/* Bakgrund och font */
+/* Hela bakgrunden och font */
 body, main {
     margin: 0; padding: 0; min-height: 100vh;
     background-color: var(--backgroundColor) !important;
-    color: white !important;                     /* All brödtext blir vit */
+    color: var(--textColor) !important;       /* Brödtext blir vit via config */
     font-family: var(--font-family) !important;
 }
 
-/* Styla Streamlits container som 'app-ruta' */
+/* Gör Streamlits container till din "app-ruta" */
 section.main, div.block-container {
     max-width: 800px !important;
     margin: 80px auto 40px auto !important;
@@ -42,6 +42,7 @@ section.main, div.block-container {
     padding: 30px 40px !important;
     border-radius: 12px !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    color: var(--textColor) !important;       /* Säkrar att all text är vit */
 }
 
 /* Rubriker */
@@ -55,14 +56,14 @@ h1, h2, h3 {
 .stTextInput > div > div > input {
     width: 100% !important;
     background-color: white !important;
-    color: black !important;                     /* Input-text svart */
+    color: black !important;                   /* Input-text svart */
     border: 2px solid var(--primaryColor) !important;
     border-radius: 6px !important;
     padding: 8px !important;
     font-family: var(--font-family) !important;
 }
 .stTextInput > div > div > input::placeholder {
-    color: #888 !important; /* placeholder lätt grå */
+    color: #888 !important;
 }
 
 /* Knappar */
@@ -85,7 +86,7 @@ div.stButton > button:hover {
     background-color: var(--secondaryBackgroundColor) !important;
 }
 [data-testid="stSidebar"] * {
-    color: white !important;
+    color: var(--textColor) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -107,13 +108,11 @@ page = st.sidebar.radio("", ["Chatbot", "About the app"], index=0)
 if page == "Chatbot":
     st.title("The Ableton Live 12 MIDI RAG-Bot")
     query = st.text_input("Ask your question:")
-
     if query:
         query_emb = create_embeddings([query])[0]
         texts = [c["content"] for c in chunks]
         top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
-        context = "\n\n".join(top_texts)
-        answer = generate_response(query, context)
+        answer = generate_response(query, "\n\n".join(top_texts))
         st.markdown("### Answer:")
         st.write(answer)
 
