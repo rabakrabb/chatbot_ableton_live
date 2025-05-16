@@ -16,14 +16,13 @@ st.set_page_config(
 
 load_dotenv()
 
-# --- CSS styling med Streamlits egna container ---
+# --- CSS styling med textfärgs-justeringar ---
 st.markdown("""
 <style>
 :root {
     --primaryColor: #FF6F61;             /* Korall */
     --backgroundColor: #004D4D;          /* Mörk turkos */
     --secondaryBackgroundColor: #006666; /* Mörkare sekundär */
-    --textColor: #E0F2F1;                /* Ljus text */
     --font-family: "Arial, sans-serif";
 }
 
@@ -31,7 +30,7 @@ st.markdown("""
 body, main {
     margin: 0; padding: 0; min-height: 100vh;
     background-color: var(--backgroundColor) !important;
-    color: var(--textColor) !important;
+    color: white !important;                     /* All brödtext blir vit */
     font-family: var(--font-family) !important;
 }
 
@@ -56,15 +55,14 @@ h1, h2, h3 {
 .stTextInput > div > div > input {
     width: 100% !important;
     background-color: white !important;
-    color: var(--textColor) !important;
+    color: black !important;                     /* Input-text svart */
     border: 2px solid var(--primaryColor) !important;
     border-radius: 6px !important;
     padding: 8px !important;
     font-family: var(--font-family) !important;
 }
 .stTextInput > div > div > input::placeholder {
-    color: var(--textColor) !important;
-    opacity: 0.6 !important;
+    color: #888 !important; /* placeholder lätt grå */
 }
 
 /* Knappar */
@@ -87,7 +85,7 @@ div.stButton > button:hover {
     background-color: var(--secondaryBackgroundColor) !important;
 }
 [data-testid="stSidebar"] * {
-    color: var(--textColor) !important;
+    color: white !important;
 }
 </style>
 """, unsafe_allow_html=True)
