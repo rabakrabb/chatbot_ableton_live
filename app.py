@@ -44,8 +44,15 @@ h1, h2, h3 {
     color: var(--primaryColor) !important;
     font-weight: 700 !important;
 }
+h1 {
+    text-align: center;
+    margin-bottom: 2rem !important;
+}
 
 /* Textinput */
+.stTextInput > div {
+    width: 100% !important;
+}
 .stTextInput > div > div > input {
     background-color: white !important;
     color: var(--textColor) !important;
@@ -95,6 +102,7 @@ menu = ["Chatbot", "About the app"]
 st.sidebar.markdown("### Navigation")
 selection = st.sidebar.radio("Choose page", menu, index=0)  # default = Chatbot
 
+# --- Appens huvudcontainer ---
 st.markdown('<div class="app-container">', unsafe_allow_html=True)
 
 if selection == "Chatbot":
