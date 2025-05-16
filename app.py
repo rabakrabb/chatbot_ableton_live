@@ -16,72 +16,78 @@ st.set_page_config(
 
 load_dotenv()
 
-# --- CSS styling ---
+# --- CSS styling med Streamlits egna container ---
 st.markdown("""
 <style>
-/* Hela body och appens root */
-body, .css-18e3th9 {
+:root {
+    --primaryColor: #FF6F61;             /* Korall */
+    --backgroundColor: #004D4D;          /* Mörk turkos */
+    --secondaryBackgroundColor: #006666; /* Mörkare sekundär */
+    --textColor: #E0F2F1;                /* Ljus text */
+    --font-family: "Arial, sans-serif";
+}
+
+/* Bakgrund och font */
+body, main {
     margin: 0; padding: 0; min-height: 100vh;
     background-color: var(--backgroundColor) !important;
     color: var(--textColor) !important;
-    font-family: var(--font-family, "sans-serif") !important;
+    font-family: var(--font-family) !important;
 }
 
-/* Container för appens innehåll */
-.app-container {
-    max-width: 800px;
-    margin: 40px auto;
+/* Styla Streamlits container som 'app-ruta' */
+section.main, div.block-container {
+    max-width: 800px !important;
+    margin: 80px auto 40px auto !important;
     background-color: var(--secondaryBackgroundColor) !important;
-    color: var(--textColor) !important;
-    padding: 30px 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    font-family: var(--font-family, "sans-serif") !important;
+    padding: 30px 40px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
 }
 
 /* Rubriker */
 h1, h2, h3 {
     color: var(--primaryColor) !important;
     font-weight: 700 !important;
-}
-h1 {
-    text-align: center;
-    margin-bottom: 2rem !important;
+    margin-top: 0 !important;
 }
 
 /* Textinput */
-.stTextInput > div {
-    width: 100% !important;
-}
 .stTextInput > div > div > input {
+    width: 100% !important;
     background-color: white !important;
     color: var(--textColor) !important;
     border: 2px solid var(--primaryColor) !important;
     border-radius: 6px !important;
     padding: 8px !important;
-    font-family: var(--font-family, "sans-serif") !important;
+    font-family: var(--font-family) !important;
+}
+.stTextInput > div > div > input::placeholder {
+    color: var(--textColor) !important;
+    opacity: 0.6 !important;
 }
 
 /* Knappar */
 div.stButton > button {
     background-color: var(--primaryColor) !important;
     color: white !important;
-    border: none !important;
     border-radius: 6px !important;
     padding: 8px 16px !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: background-color 0.3s ease !important;
-    font-family: var(--font-family, "sans-serif") !important;
+    font-family: var(--font-family) !important;
 }
 div.stButton > button:hover {
     background-color: #e65b50 !important;
 }
 
-/* Länkar */
-a {
-    color: var(--primaryColor) !important;
-    font-family: var(--font-family, "sans-serif") !important;
+/* Menyfärg */
+[data-testid="stSidebar"] {
+    background-color: var(--secondaryBackgroundColor) !important;
+}
+[data-testid="stSidebar"] * {
+    color: var(--textColor) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -89,47 +95,40 @@ a {
 
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
-    chunks: List[Dict] = load_chunks(jsonl_path)
-    contents = [chunk["content"] for chunk in chunks]
-    embeddings = create_embeddings(contents)
+    chunks = load_chunks(jsonl_path)
+    chunks = [c for c in chunks if c.get("content", "").strip()]
+    embeddings = create_embeddings([c["content"] for c in chunks])
     return chunks, embeddings
-
 
 chunks, embeddings = initialize_rag()
 
 # --- Meny ---
-menu = ["Chatbot", "About the app"]
-st.sidebar.markdown("### Navigation")
-selection = st.sidebar.radio("Choose page", menu, index=0)  # default = Chatbot
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("", ["Chatbot", "About the app"], index=0)
 
-# --- Appens huvudcontainer ---
-st.markdown('<div class="app-container">', unsafe_allow_html=True)
-
-if selection == "Chatbot":
+if page == "Chatbot":
     st.title("The Ableton Live 12 MIDI RAG-Bot")
     query = st.text_input("Ask your question:")
 
     if query:
         query_emb = create_embeddings([query])[0]
-        texts = [chunk["content"] for chunk in chunks]
+        texts = [c["content"] for c in chunks]
         top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
         context = "\n\n".join(top_texts)
         answer = generate_response(query, context)
         st.markdown("### Answer:")
         st.write(answer)
 
-elif selection == "About the app":
+else:
     st.title("About the app")
     st.write("""
-    This chatbot is built using semantic search and retrieval-augmented generation (RAG) to answer questions about Ableton Live 12 MIDI.
+This chatbot is built using semantic search and retrieval-augmented generation (RAG) to answer questions about Ableton Live 12 MIDI.
 
-    It uses precomputed embeddings of Ableton Live 12 manual chunks and Google's AI technology to generate context-aware answers.
+It uses precomputed embeddings of Ableton Live 12 manual chunks and Google's AI technology to generate context-aware answers.
 
-    Created by Martin Blomqvist during the Data Scientist program at EC Utbildning 2025.
+Created by Martin Blomqvist during the Data Scientist program at EC Utbildning 2025.
 
-    For more information:
-    - [GitHub](https://github.com/rabakrabb)
-    - [LinkedIn](https://www.linkedin.com/in/martin-blomqvist)
-    """)
-
-st.markdown('</div>', unsafe_allow_html=True)
+For more information:
+- [GitHub](https://github.com/rabakrabb)
+- [LinkedIn](https://www.linkedin.com/in/martin-blomqvist)
+""")
