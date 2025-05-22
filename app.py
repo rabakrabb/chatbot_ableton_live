@@ -119,24 +119,38 @@ For more information:
 
 elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
-    st.markdown("Test how well the chatbot performs by submitting multiple questions and comparing its answers to ideal responses.")
+    st.markdown("Test how well the chatbot performs on beginner-level questions about Ableton Live 12 and MIDI.")
 
-    if "eval_scores" not in st.session_state:
-        st.session_state.eval_scores = []
-        st.session_state.eval_results = []
+    # --- Förvalda frågor och facitsvar ---
+    preset_qna = {
+        "How do I quantize MIDI notes in Ableton Live?":
+            "To quantize MIDI notes in Ableton Live, select the notes in the MIDI Note Editor and press Ctrl+U (Cmd+U on Mac). You can adjust the quantization settings by right-clicking and selecting 'Quantize Settings'.",
+        "What is a MIDI clip in Ableton Live?":
+            "A MIDI clip is a container for MIDI notes and automation. It can be created by double-clicking in a MIDI track and allows for editing and playback of MIDI data.",
+        "How can I loop a MIDI clip?":
+            "To loop a MIDI clip, enable the Loop switch in the Clip View. You can adjust the loop region using the Loop Length and Start settings.",
+        "What does the Fold button do in the MIDI editor?":
+            "The Fold button hides all unused rows in the MIDI editor, helping you focus on the pitches that are actually used.",
+        "Can I edit MIDI velocities in Ableton Live?":
+            "Yes, you can edit MIDI velocities in the MIDI Note Editor using the velocity markers below each note or in the Velocity Lane."
+    }
 
-    # ✅ Alla inputs har nu labels
-    question = st.text_input("User question", key="eval_q")
-    ideal_answer = st.text_area("Ideal answer", key="eval_a")
-    
-    if st.button("Evaluate response"):
-        if question and ideal_answer:
-            query_emb = create_embeddings([question])[0]
+    st.markdown("### Select a beginner-friendly question:")
+    selected_question = st.selectbox("Choose a question to evaluate:", [""] + list(preset_qna.keys()))
+    custom_question = st.text_input("Or enter your own question (optional):")
+
+    final_question = custom_question.strip() if custom_question else selected_question.strip()
+    ideal_answer = preset_qna.get(final_question, "")
+
+    if final_question:
+        if st.button("Evaluate Response"):
+            query_emb = create_embeddings([final_question])[0]
             texts = [c["content"] for c in chunks]
             top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
-            model_answer = generate_response(question, "\n\n".join(top_texts))
+            model_answer = generate_response(final_question, "\n\n".join(top_texts))
 
-            evaluation_system_prompt = """You are an intelligent evaluation system. Your task is to grade an AI assistant's answer to a user query.
+            # Låt modellen utvärdera sitt eget svar
+            eval_prompt = f"""You are an intelligent evaluation system. Your task is to grade an AI assistant's answer to a user query.
 
 Give a score between 0 and 1:
 - Score 1 if the assistant's answer closely matches the ideal answer.
@@ -144,40 +158,53 @@ Give a score between 0 and 1:
 - Score 0.5 if the answer is partially correct or helpful.
 
 Then explain your score briefly.
-"""
-            evaluation_prompt = f"""Question: {question}
+
+Question: {final_question}
 AI Assistant's Answer: {model_answer}
 Ideal Answer: {ideal_answer}"""
 
-            eval_result = generate_response(evaluation_system_prompt, evaluation_prompt)
-
+            eval_result = generate_response(eval_prompt)
             import re
             score_match = re.search(r"(?i)score[:\s]+(1|0\.5|0)", eval_result)
-            score = float(score_match.group(1)) if score_match else 0.0
+            model_score = float(score_match.group(1)) if score_match else 0.0
 
-            st.session_state.eval_scores.append(score)
-            st.session_state.eval_results.append({
-                "question": question,
-                "answer": model_answer,
-                "ideal": ideal_answer,
-                "score": score,
-                "explanation": eval_result
-            })
+            # Visa svar och självutvärdering
+            st.markdown("### AI Assistant's Answer:")
+            st.write(model_answer)
 
-    if st.session_state.eval_results:
+            st.markdown("#### Assistant's self-evaluation:")
+            st.markdown(f"- **Score:** `{model_score}`")
+            st.markdown(f"- **Explanation:** {eval_result}")
+
+            # Användarbetyg
+            user_score = st.slider("How do you rate this answer?", 0.0, 1.0, 0.5, step=0.1)
+            if st.button("Submit your rating"):
+                if "eval_results" not in st.session_state:
+                    st.session_state.eval_results = []
+
+                st.session_state.eval_results.append({
+                    "question": final_question,
+                    "answer": model_answer,
+                    "ideal": ideal_answer,
+                    "model_score": model_score,
+                    "self_explanation": eval_result,
+                    "user_score": user_score
+                })
+
+    # Historik
+    if "eval_results" in st.session_state and st.session_state.eval_results:
         st.markdown("## Evaluation History")
-        for i, result in enumerate(st.session_state.eval_results[::-1], 1):
-            st.markdown(f"**Example {len(st.session_state.eval_results) - i + 1}**")
-            st.markdown(f"- **Question:** {result['question']}")
-            st.markdown(f"- **AI Answer:** {result['answer']}")
-            st.markdown(f"- **Ideal Answer:** {result['ideal']}")
-            st.markdown(f"- **Score:** {result['score']}")
-            st.markdown(f"- **Explanation:** {result['explanation']}")
+        for result in st.session_state.eval_results[::-1]:
+            st.markdown("#### Question: " + result["question"])
+            st.markdown("- **AI Answer:** " + result["answer"])
+            st.markdown("- **Ideal Answer:** " + result["ideal"])
+            st.markdown(f"- **Model Score:** `{result['model_score']}`")
+            st.markdown(f"- **Self-Evaluation:** {result['self_explanation']}")
+            st.markdown(f"- **Your Score:** `{result['user_score']}`")
             st.markdown("---")
 
-        avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
-        st.markdown(f"### Session Average Score: `{avg_score:.2f}`")
+        avg = sum(r['user_score'] for r in st.session_state.eval_results) / len(st.session_state.eval_results)
+        st.markdown(f"### Average User Score: `{avg:.2f}`")
 
     if st.button("Reset Evaluation Session"):
-        st.session_state.eval_scores = []
         st.session_state.eval_results = []
