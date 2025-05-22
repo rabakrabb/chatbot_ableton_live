@@ -1,8 +1,10 @@
 import streamlit as st
 from dotenv import load_dotenv
 from vector_store import VectorStore
-from llm_utils import generate_response
+from llm_utils import generate_response # Vi behöver importera generate_response för att få tillgång till prompt-logiken
 from rag_utils import create_embeddings, load_chunks
+from numpy import dot
+from numpy.linalg import norm
 
 st.set_page_config(
     page_title="The Ableton Live 12 MIDI RAG-Bot",
@@ -199,28 +201,40 @@ elif page == "Evaluation":
     st.markdown("### Ideal answer:")
     st.write(ideal_answer)
 
-    # Beräkna embedding-likhet
-    model_emb = create_embeddings([model_answer])[0]
-    ideal_emb = create_embeddings([ideal_answer])[0]
+    # Definiera "no-answer"-frasen baserat på valt språk
+    if answer_language == "English":
+        no_answer_phrase = "I found no relevant information in my sources. Try rephrasing your question or consult the Ableton Live 12 manual."
+    else: # Swedish
+        no_answer_phrase = "Jag hittade ingen relevant information i mina källor. Försök att omformulera din fråga eller konsultera Ableton Live 12 manualen."
 
-    from numpy import dot
-    from numpy.linalg import norm
+    # --- Regelbaserad kontroll för "no-answer" ---
+    if model_answer.strip() == no_answer_phrase.strip():
+        score = 0.00 # Om AI:n explicit svarar med "no-answer"-frasen, sätt poängen till 0
+        st.markdown(f"### Similarity Score: `{score}` (AI did not provide an answer)")
+    else:
+        # Beräkna embedding-likhet som tidigare
+        model_emb = create_embeddings([model_answer])[0]
+        ideal_emb = create_embeddings([ideal_answer])[0]
 
-    similarity = dot(model_emb, ideal_emb) / (norm(model_emb) * norm(ideal_emb))
-    score = round(similarity, 2)
+        similarity = dot(model_emb, ideal_emb) / (norm(model_emb) * norm(ideal_emb))
+        score = round(similarity, 2)
+        st.markdown(f"### Similarity Score: `{score}`")
 
     # Spara score i session state
     if "eval_scores" not in st.session_state:
         st.session_state.eval_scores = []
 
-    st.session_state.eval_scores.append(score)
+    # Se till att bara lägga till poängen en gång per fråga/svar-visning
+    # Detta är en enkel mekanism, för en mer robust lösning kan du behöva lagra mer information
+    # om den senast utvärderade frågan/svaret.
+    if not st.session_state.eval_scores or st.session_state.eval_scores[-1] != score:
+         st.session_state.eval_scores.append(score)
 
-    st.markdown(f"### 🔍 Similarity Score: `{score}`")
 
     # Visa medelpoäng om minst 1 utvärdering
     if st.session_state.eval_scores:
         avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
-        st.markdown(f"### 🟢 Session Average Score: `{avg_score:.2f}`")
+        st.markdown(f"### Session Average Score: `{avg_score:.2f}`")
 
     if st.button("Reset Session Scores"):
         st.session_state.eval_scores = []
