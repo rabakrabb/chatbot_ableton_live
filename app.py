@@ -2,6 +2,7 @@ import streamlit as st
 from typing import List, Dict
 from dotenv import load_dotenv
 
+
 # Egna moduler
 from semantic_search import semantic_search
 from llm_utils import generate_response
@@ -24,6 +25,7 @@ st.markdown("""
     --backgroundColor: #004D4D;
     --secondaryBackgroundColor: #006666;
     --font-family: "Arial, sans-serif";
+    --textColor: white;
 }
 body, main {
     margin: 0; padding: 0; min-height: 100vh;
@@ -77,26 +79,18 @@ div.stButton > button:hover {
     color: var(--textColor) !important;
 }
 
-/* Orange kant runt selectbox wrapper */
-.stSelectbox > div > div {
+/* Fix för selectbox (dropdown) */
+div[role="combobox"] > div > div > select {
+    background-color: white !important;
+    color: black !important;
     border: 2px solid var(--primaryColor) !important;
     border-radius: 6px !important;
-    padding: 4px 8px !important;
-    background-color: white !important;
-}
-
-/* Ta bort border på själva select och gör bakgrunden transparent */
-.stSelectbox > div > div > select {
-    border: none !important;
-    background-color: transparent !important;
-    color: black !important;
-    width: 100% !important;
+    padding: 6px 8px !important;
     font-family: var(--font-family) !important;
-    padding: 6px 0 !important;
-    outline: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 @st.cache_data(show_spinner=False)
@@ -140,10 +134,9 @@ For more information:
 elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
     st.markdown("""
-Test how well the chatbot performs by selecting a question from the list, seeing the AI's answer, then rating its quality using the scale below.
+Test how well the chatbot performs by selecting a question from the list, seeing the AI's answer, then rating its quality automatically.
 """)
 
-    # Fördefinierade nybörjarfrågor med idealiska svar (facit)
     predefined_qa = [
         {
             "question": "What is a MIDI clip in Ableton Live?",
@@ -167,7 +160,6 @@ Test how well the chatbot performs by selecting a question from the list, seeing
         },
     ]
 
-    # Dropdown för att välja fråga
     st.markdown("### Select a predefined question:")
     question_idx = st.selectbox(
         "Choose a question to evaluate:",
@@ -181,7 +173,7 @@ Test how well the chatbot performs by selecting a question from the list, seeing
 
     st.markdown(f"**Ideal answer:**  {ideal_answer}")
 
-    # Generera chatbotens svar
+    # Generate AI assistant answer
     query_emb = create_embeddings([question])[0]
     texts = [c["content"] for c in chunks]
     top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
@@ -190,31 +182,38 @@ Test how well the chatbot performs by selecting a question from the list, seeing
     st.markdown("### AI Assistant's answer:")
     st.write(model_answer)
 
-    st.markdown("### Rate the AI Assistant's answer:")
-    rating = st.radio(
-    "Choose a score",
-    options=[0, 0.5, 1],
-    format_func=lambda x: f"{x} {'(Bad)' if x == 0 else '(Partial)' if x == 0.5 else '(Good)'}",
-    index=1,
-    horizontal=True,
-    )
+    # --- SELF-EVALUATION with embeddings ---
+    # Embed both model answer and ideal answer
+    emb_model_answer = create_embeddings([model_answer])[0]
+    emb_ideal_answer = create_embeddings([ideal_answer])[0]
 
-    if st.button("Submit Evaluation"):
-        # Lägg till i session_state
+    # Compute cosine similarity as score (between 0 and 1)
+    from numpy import dot
+    from numpy.linalg import norm
+
+    def cosine_similarity(a, b):
+        return dot(a, b) / (norm(a) * norm(b))
+
+    score = cosine_similarity(emb_model_answer, emb_ideal_answer)
+    score = max(0.0, min(1.0, score))  # clamp score to [0,1]
+
+    st.markdown(f"### Automatic evaluation score (cosine similarity): `{score:.3f}`")
+
+    if st.button("Save Evaluation"):
         if "eval_scores" not in st.session_state:
             st.session_state.eval_scores = []
             st.session_state.eval_results = []
 
-        st.session_state.eval_scores.append(rating)
+        st.session_state.eval_scores.append(score)
         st.session_state.eval_results.append({
             "question": question,
             "ai_answer": model_answer,
             "ideal_answer": ideal_answer,
-            "score": rating,
+            "score": score,
         })
         st.success("Evaluation saved!")
 
-    # Visa historik
+    # Show history
     if "eval_results" in st.session_state and st.session_state.eval_results:
         st.markdown("## Evaluation History")
         for i, res in enumerate(st.session_state.eval_results[::-1], 1):
@@ -222,11 +221,11 @@ Test how well the chatbot performs by selecting a question from the list, seeing
             st.markdown(f"- **Question:** {res['question']}")
             st.markdown(f"- **AI Answer:** {res['ai_answer']}")
             st.markdown(f"- **Ideal Answer:** {res['ideal_answer']}")
-            st.markdown(f"- **Score:** {res['score']}")
+            st.markdown(f"- **Score:** {res['score']:.3f}")
             st.markdown("---")
 
         avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
-        st.markdown(f"### Session Average Score: `{avg_score:.2f}`")
+        st.markdown(f"### Session Average Score: `{avg_score:.3f}`")
 
     if st.button("Reset Evaluation Session"):
         st.session_state.eval_scores = []
