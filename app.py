@@ -77,15 +77,23 @@ div.stButton > button:hover {
     color: var(--textColor) !important;
 }
 
-/* Lägg till orange kant runt selectbox (dropdown) */
-.stSelectbox > div > div > select {
+/* Orange kant runt selectbox wrapper */
+.stSelectbox > div > div {
     border: 2px solid var(--primaryColor) !important;
     border-radius: 6px !important;
-    padding: 6px 8px !important;
-    font-family: var(--font-family) !important;
+    padding: 4px 8px !important;
     background-color: white !important;
+}
+
+/* Ta bort border på själva select och gör bakgrunden transparent */
+.stSelectbox > div > div > select {
+    border: none !important;
+    background-color: transparent !important;
     color: black !important;
     width: 100% !important;
+    font-family: var(--font-family) !important;
+    padding: 6px 0 !important;
+    outline: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -182,14 +190,13 @@ Test how well the chatbot performs by selecting a question from the list, seeing
     st.markdown("### AI Assistant's answer:")
     st.write(model_answer)
 
-    # Användaren sätter betyg via radioknappar med förklaring
     st.markdown("### Rate the AI Assistant's answer:")
     rating = st.radio(
-        "Choose a score",
-        options=[1, 0.5, 0],
-        format_func=lambda x: f"{x} {'(Good)' if x==1 else '(Partial)' if x==0.5 else '(Bad)'}",
-        index=1,
-        horizontal=True,
+    "Choose a score",
+    options=[0, 0.5, 1],
+    format_func=lambda x: f"{x} {'(Bad)' if x == 0 else '(Partial)' if x == 0.5 else '(Good)'}",
+    index=1,
+    horizontal=True,
     )
 
     if st.button("Submit Evaluation"):
