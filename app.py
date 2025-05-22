@@ -195,7 +195,7 @@ elif page == "Evaluation":
     top_texts = [r["text"] for r in results]
     model_answer = generate_response(question, "\n\n".join(top_texts), answer_language=answer_language)
 
-    st.markdown("### AI Assistant's answer:")
+    st.markdown("### RAG-Bot's answer:")
     st.write(model_answer)
 
     st.markdown("### Ideal answer:")
