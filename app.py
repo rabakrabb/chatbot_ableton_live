@@ -142,7 +142,37 @@ elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
     st.markdown("Test how well the chatbot performs by selecting a question and comparing the AI's answer with the ideal answer.")
 
-    # ... Behåll din befintliga kod för predefined_qa_en och predefined_qa_sv ...
+    # Frågor och svar på engelska
+    predefined_qa_en = [
+        {"question": "What is a MIDI clip in Ableton Live?", "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."},
+        {"question": "How do I insert a virtual instrument in Ableton Live?", "ideal_answer": "Drag the instrument from the Browser into a MIDI track."},
+        {"question": "What does quantization do to MIDI notes?", "ideal_answer": "Quantization snaps MIDI notes to the nearest grid value."},
+        {"question": "How can I record MIDI input in Ableton Live?", "ideal_answer": "Arm a MIDI track and press record to capture input."},
+        {"question": "What is the difference between a MIDI track and an audio track?", "ideal_answer": "MIDI tracks use note data to control instruments, while audio tracks play sound recordings."},
+        {"question": "How do I create a new MIDI clip?", "ideal_answer": "Double-click an empty slot in a MIDI track to create a new clip."},
+        {"question": "How do I open the piano roll?", "ideal_answer": "Double-click a MIDI clip to open the piano roll editor."},
+        {"question": "How can I change note length in a MIDI clip?", "ideal_answer": "Select the note and drag its edge to adjust its duration."},
+        {"question": "How do I loop a MIDI clip?", "ideal_answer": "Enable the loop button in the clip view."},
+        {"question": "What is velocity in MIDI?", "ideal_answer": "Velocity controls how hard or soft a note is played."},
+        {"question": "How can I duplicate a MIDI note?", "ideal_answer": "Select the note and press Ctrl+D (Cmd+D on Mac)."},
+        {"question": "How do I delete a MIDI note?", "ideal_answer": "Select the note and press Delete or Backspace."}
+    ]
+
+    # Frågor och svar på svenska
+    predefined_qa_sv = [
+        {"question": "Vad är ett MIDI-klipp i Ableton Live?", "ideal_answer": "Ett MIDI-klipp är en sektion med MIDI-noter och automation som kan redigeras och spelas upp i Ableton Live."},
+        {"question": "Hur lägger jag till ett virtuellt instrument i Ableton Live?", "ideal_answer": "Dra instrumentet från Browsern till ett MIDI-spår."},
+        {"question": "Vad gör kvantisering med MIDI-noter?", "ideal_answer": "Kvantisering justerar MIDI-noter till närmaste rutnätsvärde."},
+        {"question": "Hur kan jag spela in MIDI-inmatning i Ableton Live?", "ideal_answer": "Aktivera inspelning på ett MIDI-spår och tryck på record för att fånga inmatningen."},
+        {"question": "Vad är skillnaden mellan ett MIDI-spår och ett ljudspår?", "ideal_answer": "MIDI-spår använder notdata för att styra instrument medan ljudspår spelar upp ljudinspelningar."},
+        {"question": "Hur skapar jag ett nytt MIDI-klipp?", "ideal_answer": "Dubbelklicka på en tom plats i ett MIDI-spår för att skapa ett nytt klipp."},
+        {"question": "Hur öppnar jag pianorullen?", "ideal_answer": "Dubbelklicka på ett MIDI-klipp för att öppna pianorullseditorn."},
+        {"question": "Hur kan jag ändra notlängd i ett MIDI-klipp?", "ideal_answer": "Markera noten och dra i kanten för att justera dess längd."},
+        {"question": "Hur loopar jag ett MIDI-klipp?", "ideal_answer": "Aktivera loop-knappen i klippvyn."},
+        {"question": "Vad är velocity i MIDI?", "ideal_answer": "Velocity styr hur hårt eller mjukt en not spelas."},
+        {"question": "Hur kan jag duplicera en MIDI-not?", "ideal_answer": "Markera noten och tryck Ctrl+D (Cmd+D på Mac)."},
+        {"question": "Hur tar jag bort en MIDI-not?", "ideal_answer": "Markera noten och tryck Delete eller Backspace."}
+    ]
 
     # Välj rätt språklista
     predefined_qa = predefined_qa_en if answer_language == "English" else predefined_qa_sv
