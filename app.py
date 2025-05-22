@@ -106,7 +106,7 @@ st.sidebar.title("Navigation")
 
 st.sidebar.markdown("---")
 answer_language = st.sidebar.selectbox(
-    "Answer language:",
+    "Response Language:",
     options=["English", "Swedish"],
     index=0
 )
