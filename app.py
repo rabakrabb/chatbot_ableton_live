@@ -133,7 +133,7 @@ For more information:
 
 elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
-    st.markdown("Test how well the chatbot performs by selecting a question and rating the AI's answer.")
+    st.markdown("Test how well the chatbot performs by selecting a question and comparing the AI's answer with the ideal answer.")
 
     predefined_qa = [
         {"question": "What is a MIDI clip in Ableton Live?", "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."},
@@ -159,8 +159,8 @@ elif page == "Evaluation":
 
     question = predefined_qa[question_idx]["question"]
     ideal_answer = predefined_qa[question_idx]["ideal_answer"]
-    st.markdown(f"**Ideal answer:**  {ideal_answer}")
 
+    # Hämta svar från modellen
     query_emb = create_embeddings([question])[0]
     texts = [c["content"] for c in chunks]
     top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
@@ -169,24 +169,30 @@ elif page == "Evaluation":
     st.markdown("### AI Assistant's answer:")
     st.write(model_answer)
 
-    st.markdown("### Rate the AI Assistant's answer:")
-    rating = st.radio(
-        "Choose a score",
-        options=[0, 0.5, 1],
-        format_func=lambda x: f"{x} {'(Bad)' if x == 0 else '(Partial)' if x == 0.5 else '(Good)'}",
-        index=1,
-        horizontal=True,
-        key=f"rating_{question_idx}"
-    )
+    st.markdown("### Ideal answer:")
+    st.write(ideal_answer)
 
+    # Beräkna embedding-likhet
+    model_emb = create_embeddings([model_answer])[0]
+    ideal_emb = create_embeddings([ideal_answer])[0]
+
+    # Cosine similarity
+    from numpy import dot
+    from numpy.linalg import norm
+
+    similarity = dot(model_emb, ideal_emb) / (norm(model_emb) * norm(ideal_emb))
+    score = round(similarity, 2)
+
+    # Spara score i session state
     if "eval_scores" not in st.session_state:
         st.session_state.eval_scores = []
 
-    if st.button("Submit rating"):
-        st.session_state.eval_scores.append(rating)
-        st.success("Thank you! Score submitted.")
+    st.session_state.eval_scores.append(score)
 
-    if st.session_state.get("eval_scores"):
+    st.markdown(f"### 🔍 Similarity Score: `{score}`")
+
+    # Visa medelpoäng om minst 1 utvärdering
+    if len(st.session_state.eval_scores) > 1:
         avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
         st.markdown(f"### 🟢 Session Average Score: `{avg_score:.2f}`")
 
