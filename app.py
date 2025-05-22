@@ -76,8 +76,20 @@ div.stButton > button:hover {
 [data-testid="stSidebar"] * {
     color: var(--textColor) !important;
 }
+
+/* Lägg till orange kant runt selectbox (dropdown) */
+.stSelectbox > div > div > select {
+    border: 2px solid var(--primaryColor) !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    font-family: var(--font-family) !important;
+    background-color: white !important;
+    color: black !important;
+    width: 100% !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
@@ -119,92 +131,96 @@ For more information:
 
 elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
-    st.markdown("Test how well the chatbot performs on beginner-level questions about Ableton Live 12 and MIDI.")
+    st.markdown("""
+Test how well the chatbot performs by selecting a question from the list, seeing the AI's answer, then rating its quality using the scale below.
+""")
 
-    # --- Förvalda frågor och facitsvar ---
-    preset_qna = {
-        "How do I quantize MIDI notes in Ableton Live?":
-            "To quantize MIDI notes in Ableton Live, select the notes in the MIDI Note Editor and press Ctrl+U (Cmd+U on Mac). You can adjust the quantization settings by right-clicking and selecting 'Quantize Settings'.",
-        "What is a MIDI clip in Ableton Live?":
-            "A MIDI clip is a container for MIDI notes and automation. It can be created by double-clicking in a MIDI track and allows for editing and playback of MIDI data.",
-        "How can I loop a MIDI clip?":
-            "To loop a MIDI clip, enable the Loop switch in the Clip View. You can adjust the loop region using the Loop Length and Start settings.",
-        "What does the Fold button do in the MIDI editor?":
-            "The Fold button hides all unused rows in the MIDI editor, helping you focus on the pitches that are actually used.",
-        "Can I edit MIDI velocities in Ableton Live?":
-            "Yes, you can edit MIDI velocities in the MIDI Note Editor using the velocity markers below each note or in the Velocity Lane."
-    }
+    # Fördefinierade nybörjarfrågor med idealiska svar (facit)
+    predefined_qa = [
+        {
+            "question": "What is a MIDI clip in Ableton Live?",
+            "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."
+        },
+        {
+            "question": "How do I insert a virtual instrument in Ableton Live?",
+            "ideal_answer": "You can insert a virtual instrument by dragging it from the Browser into a MIDI track."
+        },
+        {
+            "question": "What does quantization do to MIDI notes?",
+            "ideal_answer": "Quantization snaps MIDI notes to the nearest grid value to fix timing."
+        },
+        {
+            "question": "How can I record MIDI input in Ableton Live?",
+            "ideal_answer": "Arm the MIDI track and press the record button to capture MIDI input from your controller."
+        },
+        {
+            "question": "What is the difference between a MIDI track and an audio track?",
+            "ideal_answer": "A MIDI track contains MIDI data to trigger instruments, while an audio track contains recorded sound clips."
+        },
+    ]
 
-    st.markdown("### Select a beginner-friendly question:")
-    selected_question = st.selectbox("Choose a question to evaluate:", [""] + list(preset_qna.keys()))
-    custom_question = st.text_input("Or enter your own question (optional):")
+    # Dropdown för att välja fråga
+    st.markdown("### Select a predefined question:")
+    question_idx = st.selectbox(
+        "Choose a question to evaluate:",
+        options=list(range(len(predefined_qa))),
+        format_func=lambda x: predefined_qa[x]["question"],
+        help="Select a question to test the chatbot on."
+    )
 
-    final_question = custom_question.strip() if custom_question else selected_question.strip()
-    ideal_answer = preset_qna.get(final_question, "")
+    question = predefined_qa[question_idx]["question"]
+    ideal_answer = predefined_qa[question_idx]["ideal_answer"]
 
-    if final_question:
-        if st.button("Evaluate Response"):
-            query_emb = create_embeddings([final_question])[0]
-            texts = [c["content"] for c in chunks]
-            top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
-            model_answer = generate_response(final_question, "\n\n".join(top_texts))
+    st.markdown(f"**Ideal answer:**  {ideal_answer}")
 
-            # Låt modellen utvärdera sitt eget svar
-            eval_prompt = f"""You are an intelligent evaluation system. Your task is to grade an AI assistant's answer to a user query.
+    # Generera chatbotens svar
+    query_emb = create_embeddings([question])[0]
+    texts = [c["content"] for c in chunks]
+    top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
+    model_answer = generate_response(question, "\n\n".join(top_texts))
 
-Give a score between 0 and 1:
-- Score 1 if the assistant's answer closely matches the ideal answer.
-- Score 0 if the answer is incorrect or irrelevant.
-- Score 0.5 if the answer is partially correct or helpful.
+    st.markdown("### AI Assistant's answer:")
+    st.write(model_answer)
 
-Then explain your score briefly.
+    # Användaren sätter betyg via radioknappar med förklaring
+    st.markdown("### Rate the AI Assistant's answer:")
+    rating = st.radio(
+        "Choose a score",
+        options=[1, 0.5, 0],
+        format_func=lambda x: f"{x} {'(Good)' if x==1 else '(Partial)' if x==0.5 else '(Bad)'}",
+        index=1,
+        horizontal=True,
+    )
 
-Question: {final_question}
-AI Assistant's Answer: {model_answer}
-Ideal Answer: {ideal_answer}"""
+    if st.button("Submit Evaluation"):
+        # Lägg till i session_state
+        if "eval_scores" not in st.session_state:
+            st.session_state.eval_scores = []
+            st.session_state.eval_results = []
 
-            eval_result = generate_response(eval_prompt)
-            import re
-            score_match = re.search(r"(?i)score[:\s]+(1|0\.5|0)", eval_result)
-            model_score = float(score_match.group(1)) if score_match else 0.0
+        st.session_state.eval_scores.append(rating)
+        st.session_state.eval_results.append({
+            "question": question,
+            "ai_answer": model_answer,
+            "ideal_answer": ideal_answer,
+            "score": rating,
+        })
+        st.success("Evaluation saved!")
 
-            # Visa svar och självutvärdering
-            st.markdown("### AI Assistant's Answer:")
-            st.write(model_answer)
-
-            st.markdown("#### Assistant's self-evaluation:")
-            st.markdown(f"- **Score:** `{model_score}`")
-            st.markdown(f"- **Explanation:** {eval_result}")
-
-            # Användarbetyg
-            user_score = st.slider("How do you rate this answer?", 0.0, 1.0, 0.5, step=0.1)
-            if st.button("Submit your rating"):
-                if "eval_results" not in st.session_state:
-                    st.session_state.eval_results = []
-
-                st.session_state.eval_results.append({
-                    "question": final_question,
-                    "answer": model_answer,
-                    "ideal": ideal_answer,
-                    "model_score": model_score,
-                    "self_explanation": eval_result,
-                    "user_score": user_score
-                })
-
-    # Historik
+    # Visa historik
     if "eval_results" in st.session_state and st.session_state.eval_results:
         st.markdown("## Evaluation History")
-        for result in st.session_state.eval_results[::-1]:
-            st.markdown("#### Question: " + result["question"])
-            st.markdown("- **AI Answer:** " + result["answer"])
-            st.markdown("- **Ideal Answer:** " + result["ideal"])
-            st.markdown(f"- **Model Score:** `{result['model_score']}`")
-            st.markdown(f"- **Self-Evaluation:** {result['self_explanation']}")
-            st.markdown(f"- **Your Score:** `{result['user_score']}`")
+        for i, res in enumerate(st.session_state.eval_results[::-1], 1):
+            st.markdown(f"**Example {len(st.session_state.eval_results) - i + 1}**")
+            st.markdown(f"- **Question:** {res['question']}")
+            st.markdown(f"- **AI Answer:** {res['ai_answer']}")
+            st.markdown(f"- **Ideal Answer:** {res['ideal_answer']}")
+            st.markdown(f"- **Score:** {res['score']}")
             st.markdown("---")
 
-        avg = sum(r['user_score'] for r in st.session_state.eval_results) / len(st.session_state.eval_results)
-        st.markdown(f"### Average User Score: `{avg:.2f}`")
+        avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
+        st.markdown(f"### Session Average Score: `{avg_score:.2f}`")
 
     if st.button("Reset Evaluation Session"):
+        st.session_state.eval_scores = []
         st.session_state.eval_results = []
