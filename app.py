@@ -133,47 +133,34 @@ For more information:
 
 elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
-    st.markdown("""
-Test how well the chatbot performs by selecting a question from the list, seeing the AI's answer, then rating its quality automatically.
-""")
+    st.markdown("Test how well the chatbot performs by selecting a question and rating the AI's answer.")
 
     predefined_qa = [
-        {
-            "question": "What is a MIDI clip in Ableton Live?",
-            "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."
-        },
-        {
-            "question": "How do I insert a virtual instrument in Ableton Live?",
-            "ideal_answer": "You can insert a virtual instrument by dragging it from the Browser into a MIDI track."
-        },
-        {
-            "question": "What does quantization do to MIDI notes?",
-            "ideal_answer": "Quantization snaps MIDI notes to the nearest grid value to fix timing."
-        },
-        {
-            "question": "How can I record MIDI input in Ableton Live?",
-            "ideal_answer": "Arm the MIDI track and press the record button to capture MIDI input from your controller."
-        },
-        {
-            "question": "What is the difference between a MIDI track and an audio track?",
-            "ideal_answer": "A MIDI track contains MIDI data to trigger instruments, while an audio track contains recorded sound clips."
-        },
+        {"question": "What is a MIDI clip in Ableton Live?", "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."},
+        {"question": "How do I insert a virtual instrument in Ableton Live?", "ideal_answer": "Drag the instrument from the Browser into a MIDI track."},
+        {"question": "What does quantization do to MIDI notes?", "ideal_answer": "Quantization snaps MIDI notes to the nearest grid value."},
+        {"question": "How can I record MIDI input in Ableton Live?", "ideal_answer": "Arm a MIDI track and press record to capture input."},
+        {"question": "What is the difference between a MIDI track and an audio track?", "ideal_answer": "MIDI tracks use note data to control instruments, while audio tracks play sound recordings."},
+        {"question": "How do I create a new MIDI clip?", "ideal_answer": "Double-click an empty slot in a MIDI track to create a new clip."},
+        {"question": "How do I open the piano roll?", "ideal_answer": "Double-click a MIDI clip to open the piano roll editor."},
+        {"question": "How can I change note length in a MIDI clip?", "ideal_answer": "Select the note and drag its edge to adjust its duration."},
+        {"question": "How do I loop a MIDI clip?", "ideal_answer": "Enable the loop button in the clip view."},
+        {"question": "What is velocity in MIDI?", "ideal_answer": "Velocity controls how hard or soft a note is played."},
+        {"question": "How can I duplicate a MIDI note?", "ideal_answer": "Select the note and press Ctrl+D (Cmd+D on Mac)."},
+        {"question": "How do I delete a MIDI note?", "ideal_answer": "Select the note and press Delete or Backspace."}
     ]
 
     st.markdown("### Select a predefined question:")
     question_idx = st.selectbox(
-        "Choose a question to evaluate:",
+        "Choose a question:",
         options=list(range(len(predefined_qa))),
-        format_func=lambda x: predefined_qa[x]["question"],
-        help="Select a question to test the chatbot on."
+        format_func=lambda x: predefined_qa[x]["question"]
     )
 
     question = predefined_qa[question_idx]["question"]
     ideal_answer = predefined_qa[question_idx]["ideal_answer"]
-
     st.markdown(f"**Ideal answer:**  {ideal_answer}")
 
-    # Generate AI assistant answer
     query_emb = create_embeddings([question])[0]
     texts = [c["content"] for c in chunks]
     top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
@@ -182,51 +169,26 @@ Test how well the chatbot performs by selecting a question from the list, seeing
     st.markdown("### AI Assistant's answer:")
     st.write(model_answer)
 
-    # --- SELF-EVALUATION with embeddings ---
-    # Embed both model answer and ideal answer
-    emb_model_answer = create_embeddings([model_answer])[0]
-    emb_ideal_answer = create_embeddings([ideal_answer])[0]
+    st.markdown("### Rate the AI Assistant's answer:")
+    rating = st.radio(
+        "Choose a score",
+        options=[0, 0.5, 1],
+        format_func=lambda x: f"{x} {'(Bad)' if x == 0 else '(Partial)' if x == 0.5 else '(Good)'}",
+        index=1,
+        horizontal=True,
+        key=f"rating_{question_idx}"
+    )
 
-    # Compute cosine similarity as score (between 0 and 1)
-    from numpy import dot
-    from numpy.linalg import norm
-
-    def cosine_similarity(a, b):
-        return dot(a, b) / (norm(a) * norm(b))
-
-    score = cosine_similarity(emb_model_answer, emb_ideal_answer)
-    score = max(0.0, min(1.0, score))  # clamp score to [0,1]
-
-    st.markdown(f"### Automatic evaluation score (cosine similarity): `{score:.3f}`")
-
-    if st.button("Save Evaluation"):
-        if "eval_scores" not in st.session_state:
-            st.session_state.eval_scores = []
-            st.session_state.eval_results = []
-
-        st.session_state.eval_scores.append(score)
-        st.session_state.eval_results.append({
-            "question": question,
-            "ai_answer": model_answer,
-            "ideal_answer": ideal_answer,
-            "score": score,
-        })
-        st.success("Evaluation saved!")
-
-    # Show history
-    if "eval_results" in st.session_state and st.session_state.eval_results:
-        st.markdown("## Evaluation History")
-        for i, res in enumerate(st.session_state.eval_results[::-1], 1):
-            st.markdown(f"**Example {len(st.session_state.eval_results) - i + 1}**")
-            st.markdown(f"- **Question:** {res['question']}")
-            st.markdown(f"- **AI Answer:** {res['ai_answer']}")
-            st.markdown(f"- **Ideal Answer:** {res['ideal_answer']}")
-            st.markdown(f"- **Score:** {res['score']:.3f}")
-            st.markdown("---")
-
-        avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
-        st.markdown(f"### Session Average Score: `{avg_score:.3f}`")
-
-    if st.button("Reset Evaluation Session"):
+    if "eval_scores" not in st.session_state:
         st.session_state.eval_scores = []
-        st.session_state.eval_results = []
+
+    if st.button("Submit rating"):
+        st.session_state.eval_scores.append(rating)
+        st.success("Thank you! Score submitted.")
+
+    if st.session_state.get("eval_scores"):
+        avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
+        st.markdown(f"### 🟢 Session Average Score: `{avg_score:.2f}`")
+
+    if st.button("Reset Session Scores"):
+        st.session_state.eval_scores = []
