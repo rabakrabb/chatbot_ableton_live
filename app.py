@@ -2,7 +2,6 @@ import streamlit as st
 from typing import List, Dict
 from dotenv import load_dotenv
 
-
 # Egna moduler
 from semantic_search import semantic_search
 from llm_utils import generate_response
@@ -92,7 +91,6 @@ div[role="combobox"] > div > div > select {
 """, unsafe_allow_html=True)
 
 
-
 @st.cache_data(show_spinner=False)
 def initialize_rag(jsonl_path: str = "chunks.jsonl"):
     chunks = load_chunks(jsonl_path)
@@ -100,10 +98,19 @@ def initialize_rag(jsonl_path: str = "chunks.jsonl"):
     embeddings = create_embeddings([c["content"] for c in chunks])
     return chunks, embeddings
 
+
 chunks, embeddings = initialize_rag()
 
 # --- Meny ---
 st.sidebar.title("Navigation")
+
+st.sidebar.markdown("---")
+answer_language = st.sidebar.selectbox(
+    "Answer language:",
+    options=["English", "Swedish"],
+    index=0
+)
+
 page = st.sidebar.radio("Select a page", ["Chatbot", "Evaluation", "About the app"], index=0)
 
 if page == "Chatbot":
@@ -113,7 +120,7 @@ if page == "Chatbot":
         query_emb = create_embeddings([query])[0]
         texts = [c["content"] for c in chunks]
         top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
-        answer = generate_response(query, "\n\n".join(top_texts))
+        answer = generate_response(query, "\n\n".join(top_texts), answer_language=answer_language)
         st.markdown("### Answer:")
         st.write(answer)
 
@@ -135,7 +142,8 @@ elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
     st.markdown("Test how well the chatbot performs by selecting a question and comparing the AI's answer with the ideal answer.")
 
-    predefined_qa = [
+    # Frågor och svar på engelska
+    predefined_qa_en = [
         {"question": "What is a MIDI clip in Ableton Live?", "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."},
         {"question": "How do I insert a virtual instrument in Ableton Live?", "ideal_answer": "Drag the instrument from the Browser into a MIDI track."},
         {"question": "What does quantization do to MIDI notes?", "ideal_answer": "Quantization snaps MIDI notes to the nearest grid value."},
@@ -149,6 +157,28 @@ elif page == "Evaluation":
         {"question": "How can I duplicate a MIDI note?", "ideal_answer": "Select the note and press Ctrl+D (Cmd+D on Mac)."},
         {"question": "How do I delete a MIDI note?", "ideal_answer": "Select the note and press Delete or Backspace."}
     ]
+
+    # Frågor och svar på svenska
+    predefined_qa_sv = [
+        {"question": "Vad är ett MIDI-klipp i Ableton Live?", "ideal_answer": "Ett MIDI-klipp är en sektion med MIDI-noter och automation som kan redigeras och spelas upp i Ableton Live."},
+        {"question": "Hur lägger jag till ett virtuellt instrument i Ableton Live?", "ideal_answer": "Dra instrumentet från Browsern till ett MIDI-spår."},
+        {"question": "Vad gör kvantisering med MIDI-noter?", "ideal_answer": "Kvantisering justerar MIDI-noter till närmaste rutnätsvärde."},
+        {"question": "Hur kan jag spela in MIDI-inmatning i Ableton Live?", "ideal_answer": "Aktivera inspelning på ett MIDI-spår och tryck på record för att fånga inmatningen."},
+        {"question": "Vad är skillnaden mellan ett MIDI-spår och ett ljudspår?", "ideal_answer": "MIDI-spår använder notdata för att styra instrument medan ljudspår spelar upp ljudinspelningar."},
+        {"question": "Hur skapar jag ett nytt MIDI-klipp?", "ideal_answer": "Dubbelklicka på en tom plats i ett MIDI-spår för att skapa ett nytt klipp."},
+        {"question": "Hur öppnar jag pianorullen?", "ideal_answer": "Dubbelklicka på ett MIDI-klipp för att öppna pianorullseditorn."},
+        {"question": "Hur kan jag ändra notlängd i ett MIDI-klipp?", "ideal_answer": "Markera noten och dra i kanten för att justera dess längd."},
+        {"question": "Hur loopar jag ett MIDI-klipp?", "ideal_answer": "Aktivera loop-knappen i klippvyn."},
+        {"question": "Vad är velocity i MIDI?", "ideal_answer": "Velocity styr hur hårt eller mjukt en not spelas."},
+        {"question": "Hur kan jag duplicera en MIDI-not?", "ideal_answer": "Markera noten och tryck Ctrl+D (Cmd+D på Mac)."},
+        {"question": "Hur tar jag bort en MIDI-not?", "ideal_answer": "Markera noten och tryck Delete eller Backspace."}
+    ]
+
+    # Välj rätt språklista
+    if answer_language == "English":
+        predefined_qa = predefined_qa_en
+    else:
+        predefined_qa = predefined_qa_sv
 
     st.markdown("### Select a predefined question:")
     question_idx = st.selectbox(
@@ -164,7 +194,7 @@ elif page == "Evaluation":
     query_emb = create_embeddings([question])[0]
     texts = [c["content"] for c in chunks]
     top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
-    model_answer = generate_response(question, "\n\n".join(top_texts))
+    model_answer = generate_response(question, "\n\n".join(top_texts), answer_language=answer_language)
 
     st.markdown("### AI Assistant's answer:")
     st.write(model_answer)
@@ -192,7 +222,7 @@ elif page == "Evaluation":
     st.markdown(f"### 🔍 Similarity Score: `{score}`")
 
     # Visa medelpoäng om minst 1 utvärdering
-    if len(st.session_state.eval_scores) > 1:
+    if len(st.session_state.eval_scores) > 0:
         avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
         st.markdown(f"### 🟢 Session Average Score: `{avg_score:.2f}`")
 
