@@ -1,9 +1,6 @@
 import streamlit as st
-from typing import List, Dict
 from dotenv import load_dotenv
-
-# Egna moduler
-from semantic_search import semantic_search
+from vector_store import VectorStore
 from llm_utils import generate_response
 from rag_utils import create_embeddings, load_chunks
 
@@ -16,7 +13,7 @@ st.set_page_config(
 
 load_dotenv()
 
-# --- CSS styling ---
+# --- CSS styling --- (Behåll som i din nuvarande app.py)
 st.markdown("""
 <style>
 :root {
@@ -90,16 +87,19 @@ div[role="combobox"] > div > div > select {
 </style>
 """, unsafe_allow_html=True)
 
-
 @st.cache_data(show_spinner=False)
-def initialize_rag(jsonl_path: str = "chunks.jsonl"):
+def initialize_vector_store(jsonl_path: str = "chunks.jsonl") -> VectorStore:
     chunks = load_chunks(jsonl_path)
     chunks = [c for c in chunks if c.get("content", "").strip()]
-    embeddings = create_embeddings([c["content"] for c in chunks])
-    return chunks, embeddings
+    texts = [c["content"] for c in chunks]
+    embeddings = create_embeddings(texts)
 
+    store = VectorStore()
+    for text, emb, meta in zip(texts, embeddings, chunks):
+        store.add_item(text, emb, meta)
+    return store
 
-chunks, embeddings = initialize_rag()
+vector_store = initialize_vector_store()
 
 # --- Meny ---
 st.sidebar.title("Navigation")
@@ -115,11 +115,11 @@ page = st.sidebar.radio("Select a page", ["Chatbot", "Evaluation", "About the ap
 
 if page == "Chatbot":
     st.title("The Ableton Live 12 MIDI RAG-Bot")
-    query = st.text_input("Ask your question:")  # ✅ Label tydligt
+    query = st.text_input("Ask your question:")
     if query:
         query_emb = create_embeddings([query])[0]
-        texts = [c["content"] for c in chunks]
-        top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
+        results = vector_store.semantic_search(query_emb, k=5)
+        top_texts = [r["text"] for r in results]
         answer = generate_response(query, "\n\n".join(top_texts), answer_language=answer_language)
         st.markdown("### Answer:")
         st.write(answer)
@@ -142,43 +142,10 @@ elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
     st.markdown("Test how well the chatbot performs by selecting a question and comparing the AI's answer with the ideal answer.")
 
-    # Frågor och svar på engelska
-    predefined_qa_en = [
-        {"question": "What is a MIDI clip in Ableton Live?", "ideal_answer": "A MIDI clip is a block of MIDI notes and automation data that can be edited and played back in Ableton Live."},
-        {"question": "How do I insert a virtual instrument in Ableton Live?", "ideal_answer": "Drag the instrument from the Browser into a MIDI track."},
-        {"question": "What does quantization do to MIDI notes?", "ideal_answer": "Quantization snaps MIDI notes to the nearest grid value."},
-        {"question": "How can I record MIDI input in Ableton Live?", "ideal_answer": "Arm a MIDI track and press record to capture input."},
-        {"question": "What is the difference between a MIDI track and an audio track?", "ideal_answer": "MIDI tracks use note data to control instruments, while audio tracks play sound recordings."},
-        {"question": "How do I create a new MIDI clip?", "ideal_answer": "Double-click an empty slot in a MIDI track to create a new clip."},
-        {"question": "How do I open the piano roll?", "ideal_answer": "Double-click a MIDI clip to open the piano roll editor."},
-        {"question": "How can I change note length in a MIDI clip?", "ideal_answer": "Select the note and drag its edge to adjust its duration."},
-        {"question": "How do I loop a MIDI clip?", "ideal_answer": "Enable the loop button in the clip view."},
-        {"question": "What is velocity in MIDI?", "ideal_answer": "Velocity controls how hard or soft a note is played."},
-        {"question": "How can I duplicate a MIDI note?", "ideal_answer": "Select the note and press Ctrl+D (Cmd+D on Mac)."},
-        {"question": "How do I delete a MIDI note?", "ideal_answer": "Select the note and press Delete or Backspace."}
-    ]
-
-    # Frågor och svar på svenska
-    predefined_qa_sv = [
-        {"question": "Vad är ett MIDI-klipp i Ableton Live?", "ideal_answer": "Ett MIDI-klipp är en sektion med MIDI-noter och automation som kan redigeras och spelas upp i Ableton Live."},
-        {"question": "Hur lägger jag till ett virtuellt instrument i Ableton Live?", "ideal_answer": "Dra instrumentet från Browsern till ett MIDI-spår."},
-        {"question": "Vad gör kvantisering med MIDI-noter?", "ideal_answer": "Kvantisering justerar MIDI-noter till närmaste rutnätsvärde."},
-        {"question": "Hur kan jag spela in MIDI-inmatning i Ableton Live?", "ideal_answer": "Aktivera inspelning på ett MIDI-spår och tryck på record för att fånga inmatningen."},
-        {"question": "Vad är skillnaden mellan ett MIDI-spår och ett ljudspår?", "ideal_answer": "MIDI-spår använder notdata för att styra instrument medan ljudspår spelar upp ljudinspelningar."},
-        {"question": "Hur skapar jag ett nytt MIDI-klipp?", "ideal_answer": "Dubbelklicka på en tom plats i ett MIDI-spår för att skapa ett nytt klipp."},
-        {"question": "Hur öppnar jag pianorullen?", "ideal_answer": "Dubbelklicka på ett MIDI-klipp för att öppna pianorullseditorn."},
-        {"question": "Hur kan jag ändra notlängd i ett MIDI-klipp?", "ideal_answer": "Markera noten och dra i kanten för att justera dess längd."},
-        {"question": "Hur loopar jag ett MIDI-klipp?", "ideal_answer": "Aktivera loop-knappen i klippvyn."},
-        {"question": "Vad är velocity i MIDI?", "ideal_answer": "Velocity styr hur hårt eller mjukt en not spelas."},
-        {"question": "Hur kan jag duplicera en MIDI-not?", "ideal_answer": "Markera noten och tryck Ctrl+D (Cmd+D på Mac)."},
-        {"question": "Hur tar jag bort en MIDI-not?", "ideal_answer": "Markera noten och tryck Delete eller Backspace."}
-    ]
+    # ... Behåll din befintliga kod för predefined_qa_en och predefined_qa_sv ...
 
     # Välj rätt språklista
-    if answer_language == "English":
-        predefined_qa = predefined_qa_en
-    else:
-        predefined_qa = predefined_qa_sv
+    predefined_qa = predefined_qa_en if answer_language == "English" else predefined_qa_sv
 
     st.markdown("### Select a predefined question:")
     question_idx = st.selectbox(
@@ -190,10 +157,10 @@ elif page == "Evaluation":
     question = predefined_qa[question_idx]["question"]
     ideal_answer = predefined_qa[question_idx]["ideal_answer"]
 
-    # Hämta svar från modellen
+    # Hämta svar från modellen via VectorStore
     query_emb = create_embeddings([question])[0]
-    texts = [c["content"] for c in chunks]
-    top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
+    results = vector_store.semantic_search(query_emb, k=5)
+    top_texts = [r["text"] for r in results]
     model_answer = generate_response(question, "\n\n".join(top_texts), answer_language=answer_language)
 
     st.markdown("### AI Assistant's answer:")
@@ -206,7 +173,6 @@ elif page == "Evaluation":
     model_emb = create_embeddings([model_answer])[0]
     ideal_emb = create_embeddings([ideal_answer])[0]
 
-    # Cosine similarity
     from numpy import dot
     from numpy.linalg import norm
 
@@ -222,7 +188,7 @@ elif page == "Evaluation":
     st.markdown(f"### 🔍 Similarity Score: `{score}`")
 
     # Visa medelpoäng om minst 1 utvärdering
-    if len(st.session_state.eval_scores) > 0:
+    if st.session_state.eval_scores:
         avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
         st.markdown(f"### 🟢 Session Average Score: `{avg_score:.2f}`")
 
