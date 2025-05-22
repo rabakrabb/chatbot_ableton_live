@@ -103,7 +103,7 @@ chunks, embeddings = initialize_rag()
 
 # --- Meny ---
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("", ["Chatbot", "About the app", "Evaluering"], index=0)
+page = st.sidebar.radio("Select a page", ["Chatbot", "Evaluation", "About the app"], index=0)
 
 if page == "Chatbot":
     st.title("The Ableton Live 12 MIDI RAG-Bot")
@@ -133,30 +133,23 @@ For more information:
 
 elif page == "Evaluation":
     st.title("Evaluate Chatbot Responses")
-    st.markdown("""
-Test how well the chatbot performs by submitting multiple questions and comparing its answers to ideal responses.
-Scores range from 0 to 1, and an average score is calculated for this session.
-""")
+    st.markdown("""Test how well the chatbot performs by submitting multiple questions and comparing its answers to ideal responses.""")
 
-    # Initiera lista om den inte finns
     if "eval_scores" not in st.session_state:
         st.session_state.eval_scores = []
         st.session_state.eval_results = []
 
-    with st.form("evaluation_form"):
-        question = st.text_input("Enter a user question")
-        ideal_answer = st.text_area("Enter the ideal (desired) answer")
-        submit_eval = st.form_submit_button("Evaluate response")
+    # INTE i form – för att felsöka
+    question = st.text_input("Enter a user question", key="eval_q")
+    ideal_answer = st.text_area("Enter the ideal (desired) answer", key="eval_a")
+    if st.button("Evaluate response"):
+        if question and ideal_answer:
+            query_emb = create_embeddings([question])[0]
+            texts = [c["content"] for c in chunks]
+            top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
+            model_answer = generate_response(question, "\n\n".join(top_texts))
 
-    if submit_eval and question and ideal_answer:
-        # 1. Generera svar från RAG-modellen
-        query_emb = create_embeddings([question])[0]
-        texts = [c["content"] for c in chunks]
-        top_texts = semantic_search(query_emb, texts, embeddings, top_k=5)
-        model_answer = generate_response(question, "\n\n".join(top_texts))
-
-        # 2. Utvärderingsprompt
-        evaluation_system_prompt = """You are an intelligent evaluation system. Your task is to grade an AI assistant's answer to a user query.
+            evaluation_system_prompt = """You are an intelligent evaluation system. Your task is to grade an AI assistant's answer to a user query.
 
 Give a score between 0 and 1:
 - Score 1 if the assistant's answer closely matches the ideal answer.
@@ -165,29 +158,26 @@ Give a score between 0 and 1:
 
 Then explain your score briefly.
 """
-
-        evaluation_prompt = f"""Question: {question}
+            evaluation_prompt = f"""Question: {question}
 AI Assistant's Answer: {model_answer}
 Ideal Answer: {ideal_answer}"""
 
-        eval_result = generate_response(evaluation_system_prompt, evaluation_prompt)
+            eval_result = generate_response(evaluation_system_prompt, evaluation_prompt)
 
-        # 3. Extrahera poängen från svaret
-        import re
-        score_match = re.search(r"(?i)score[:\s]+(1|0\.5|0)", eval_result)
-        score = float(score_match.group(1)) if score_match else 0.0
+            import re
+            score_match = re.search(r"(?i)score[:\s]+(1|0\.5|0)", eval_result)
+            score = float(score_match.group(1)) if score_match else 0.0
 
-        # 4. Uppdatera session
-        st.session_state.eval_scores.append(score)
-        st.session_state.eval_results.append({
-            "question": question,
-            "answer": model_answer,
-            "ideal": ideal_answer,
-            "score": score,
-            "explanation": eval_result
-        })
+            st.session_state.eval_scores.append(score)
+            st.session_state.eval_results.append({
+                "question": question,
+                "answer": model_answer,
+                "ideal": ideal_answer,
+                "score": score,
+                "explanation": eval_result
+            })
 
-    # Visa utvärderingsresultat för alla frågor
+    # Visa historik
     if st.session_state.eval_results:
         st.markdown("## Evaluation History")
         for i, result in enumerate(st.session_state.eval_results[::-1], 1):
@@ -202,7 +192,6 @@ Ideal Answer: {ideal_answer}"""
         avg_score = sum(st.session_state.eval_scores) / len(st.session_state.eval_scores)
         st.markdown(f"### Session Average Score: `{avg_score:.2f}`")
 
-    # Återställningsknapp
     if st.button("Reset Evaluation Session"):
         st.session_state.eval_scores = []
         st.session_state.eval_results = []
