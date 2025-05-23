@@ -1,7 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 from vector_store import VectorStore
-from llm_utils import generate_response # Vi behöver importera generate_response för att få tillgång till prompt-logiken
+from llm_utils import generate_response
 from rag_utils import create_embeddings, load_chunks
 from numpy import dot
 from numpy.linalg import norm

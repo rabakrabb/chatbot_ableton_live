@@ -22,7 +22,7 @@ def generate_response(query, context, model_name="gemini-2.0-flash", answer_lang
         f"{language_instruction} "
         "Base your answers on the provided context. "
         "If the context contains relevant information, use it to answer the question as accurately and concisely as possible. "
-        "If the context does not contain a direct answer, but includes related information, use that to guide the user—suggest search terms, refer to relevant sections of the manual, or explain related concepts. "
+        "If the context does not contain a direct answer, but includes related information, use that to guide the user — suggest search terms, refer to relevant sections of the manual, or explain related concepts. "
         "If the context is completely irrelevant to the question, respond: 'I found no relevant information in my sources. Try rephrasing your question or consult the Ableton Live 12 manual.'" # Denna är viktig!
     )
 

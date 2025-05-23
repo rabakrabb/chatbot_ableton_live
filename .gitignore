@@ -1,4 +1,6 @@
 data/ableton_12_manual.pdf
-venv311/venv311
 chatbot/
 semantic_search.py
+data/extracted_midi_chapters_Backup.txt
+.devcontainer/
+__pycache__/
