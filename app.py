@@ -238,3 +238,86 @@ elif page == "Evaluation":
 
     if st.button("Reset Session Scores"):
         st.session_state.eval_scores = []
+
+"""
+
+--- Diskussion ---
+Min modell använder de specifika kapitel i Ableton Live 12-manualen som berör MIDI för att träna chatboten. 
+Den är tränad för nybörjaren som vill lära sig om MIDI-musik och MIDI-skapande i programmet Ableton Live 12.
+I verkligheten kan denna chatbot användas av nya användare eller befintliga användare som vill ha snabba svar
+utan att behöva slå upp det i manualen. Det finns enligt mig stor potential i chatboten och den kan med enkelhet
+byggas vidare på för att hantera hela manualen och ge en mer övergripande hjälp.
+
+--- Potentiella utmaningar och möjligheter ---
+- Affärsmässiga
+    - Möjligheter:
+        - Konstnadsbesparingar, genom minskat tryck på kundsupport hos företaget.
+        - Skalbarhet, en bot kan hantera tusentals frågor samtidigt, en mänsklig support har svårt att tillgodose detta.
+        - 24/7 tillgänglighet, kundsupport dygnet runt, överallt.
+        - Konkurrensfördel, en välfungerande AI-support kan ge företaget fördelar gentemot konkurrenter.
+        - Engagemang/kundnöjdhet, att ha en effektiv bot nära till hands kan öka användarnöjdheten och lojaliteten.
+    - Utmaningar:
+        - Initiala kostnader, utveckling, träning och underhåll av en stabil och hållbar RAG-lösning kostar pengar och
+        kan innebära substantiella investeringar (API-kostnader för LLM, infrastruktur).
+        - Underhåll av datakällan, programmet uppdateras och manualen likaså, detta kräver ett kontinuerligt arbete för
+        att säkerställa kvalitet. ur säkerställs att uppdateringar i manualen snabbt återspeglas i botens kunskapsbas? 
+        Detta kräver en robust pipeline för dataflöde och uppdateringar av vektorbutiken.
+        - Kvalitetskontroll, felaktiga svar kan skada varumärket. Hur övervakas och kontrolleras botens svar lämpligt i 
+        en större skala? Detta inkluderar att definiera metrics för svarskvalitet och att implementera feedbackmekanismer 
+        från användare.
+        - Integration, hur kan boten integreras i befintlig supportstruktur eller inom Ableton Live-programvaran? Detta kan 
+        vara tekniskt komplext och kräva anpassningar för att passa in i företagets befintliga ekosystem.
+        - Adoption, kommer användarna att ta till sig boten och lita på innehållet? Detta kan kräva tydliga evaluerings-
+        presentationer och en transparent kommunikation om botens kapacitet och begränsningar.
+
+- Etiska perspektiv:
+    - Hallucinationer och felaktigheter, även med en restriktiv systemprompt och säkerhetsåtgärder så kan en RAG-bot 
+    "hallucinera" och hitta på fakta eller tolka kontexten felaktigt.
+        - Utmaningen ligger i hur dessa fall hanteras av användaren. Kan felaktiga instruktioner frustrera användare eller
+        till och med skada till exempel systeminställningar? Att agera på felaktiga instruktioner från en bot kan i värsta 
+        fall leda till dataförlust eller att ett musikprojekt inte kan slutföras.
+        - Åtgärder kan här vara att till exempel vara tydlig med ansvarsfriskrivning, ge användaren möjlighet att rapportera
+        felaktigheter. En övervakning av konversationer kan identifiera problemområden. Likt i den aktuella Ableton-boten
+        bör systemprompten designas så att den uttryckligen endast svarar utifrån källmaterialet, med till exempel en så
+        kallad "no answer"-hantering. Detta sista steg är avgörande för att bygga förtroende och minimera felinformation.
+    - Bias, om den underliggande LLM:en har tränats på data som innehåller bias kan detta eventuellt "smitta av sig" på svaren,
+    även om en gedigen RAG-kontext minskar denna risk.
+        - Utmaningen kan vara huruvida manualen är respresentativ. Exempelvis kan vissa språkliga formuleringar, val av exempel, 
+        eller betoning på vissa arbetsflöden oavsiktligt gynna specifika användargrupper eller musikgenrer, vilket kan leda till 
+        att boten inte är lika hjälpsam för alla användare. Kan det finnas bias i språket eller strukturen - även om det
+        rör sig om en teknisk manual?
+        - Åtgärder för att hantera detta kan vara en kontinuerlig granskning av både den underliggande LLM:ens beteende och 
+        källmaterialets innehåll. En transparent kommunikation om botens källor och begränsningar är också viktig.
+    - Användardata och sekretess, hur hanteras användardata där boten till exempel sparar konversationer för vidare utveckling
+    och utvärdering? Efterlever detta GDPR och liknande regelverk?
+        - Utmaningen, är användare införstådda och bekväma med att deras interaktioner loggas och övervakas? Bör detta vara 
+        valfritt eller påverkar det kvaliteten på utvärderingen?
+        - Åtgärder, en tydlig integritetspolicy och möjlighet att avstå från datainsamling är avgörande för att bygga 
+        användarförtroende och säkerställa en etisk drift.
+    - Transparens, är det tydligt och klart för användaren att den interagerar med en AI och inte en mänsklig supportagent?
+    Detta är viktigt för att hantera användarnas förväntningar. Om användare tror att de pratar med en människa kan det leda 
+    till frustration när boten inte förstår mer komplexa problem eller brister i empati. En tydlig "Jag är en AI-assistent"-disclaimer 
+    är en etisk standard.
+
+- Andra relevanta perspektiv:
+    - Tekniska begränsningar:
+        - Omfång, denna bot är begränsad till den data den är tränad på. Den kan inte svara på frågor utanför kontexten, vilket
+        kan vara frustrerande för användaren.
+        - Komplexa eller nyanserade frågor, LLM:er kan ha svårt att resonera kring och tyda väldigt komplexa flerstegs- eller
+        tvetydiga frågor, vilka kräver en djupare förståelse kring kontexten utanför det som står explicit i manualen.
+        - Latens/Svarstid, API-anrop till LLM:er kan ibland medföra latens, som kan påverka användarupplevelsen negativt om
+        svarstiden blir alltför lång. I en kreativ process kan en snabb respons vara avgörande för att upprätthålla användarens flow.
+        - Infrastruktur, att hosta och skala en RAG-bot i stor skala kan kräva en stor satsning på molninfrastruktur.
+    - Användarupplevelse (UX):
+        - Den "no answer"-hantering, som denna bot inkluderar är viktigt utifrån att vara transparent med att boten inte
+        har något svar, och användaren kan tydligt se att den inte "gissar".
+        - Interaktivitet, hur kan boten göras än mer interaktiv? I vilken mån ska den vidarebefordra användaren till en mänsklig
+        support, och när?
+
+--- Avslutning ---
+En RAG-bot av denna typ har enorm potential att revolutionera hur vi interagerar med information och support inom specifika områden
+och domäner. Med nödvändiga försiktighetsåtgärder, transparens och ett kontinuerligt kvalitetsarbete kan denna typ av lösningar bli
+ledande i framtidens informationsflöde. Genom att ta höjd för utmaningarna och sätta in effektiva motåtgärder kan nyttan med råge
+överväga riskerna. Ledordet här är att göra det kvalitativt, transparent, robust.
+
+"""
