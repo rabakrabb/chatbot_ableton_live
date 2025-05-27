@@ -1,0 +1,7 @@
+data/ableton_12_manual.pdf
+chatbot/
+semantic_search.py
+data/extracted_midi_chapters_Backup.txt
+.devcontainer/
+__pycache__/
+.vscode/
