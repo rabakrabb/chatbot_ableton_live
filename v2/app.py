@@ -90,7 +90,7 @@ div[role="combobox"] > div > div > select {
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_resource(show_spinner=False)
+# @st.cache_resource(show_spinner=False)
 def initialize_vector_store() -> VectorStore:
     embeddings_parquet_path = "data/full_embeddings.parquet"
 
