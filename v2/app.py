@@ -92,7 +92,7 @@ div[role="combobox"] > div > div > select {
 
 @st.cache_resource(show_spinner=False)
 def initialize_vector_store() -> VectorStore:
-    embeddings_parquet_path = "full_embeddings.parquet" # Sökväg till din nya embeddings-fil för hela manualen
+    embeddings_parquet_path = "data/full_embeddings.parquet"
 
     store = VectorStore()
     if store.load(embeddings_parquet_path): # Försök ladda från fil
