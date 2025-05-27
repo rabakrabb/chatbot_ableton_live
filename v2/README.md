@@ -1,4 +1,4 @@
-### Chatbot Ableton Live — Version 2
+# Chatbot Ableton Live — Version 2
 Det här är version 2 av den RAG-baserade chatboten för Ableton Live 12 manualen.
 
 Funktioner
@@ -60,14 +60,14 @@ Generera och spara embeddings (detta skapar full_embeddings.parquet):
 python generate_and_save_embeddings.py
 
 
-# Kör appen:
+## Kör appen:
 
 streamlit run app.py
 
 Följ instruktionerna i webbläsaren för att ställa frågor.
 
 
-# Struktur
+## Struktur
 
 app.py: Streamlit frontend.
 
@@ -89,13 +89,13 @@ Gitignore
 
 Lägg till följande i din .gitignore för att ignorera stora filer som manualen och genererade data:
 
-# Datafiler
+## Datafiler
 data/ableton_12_manual.pdf
 data/full_manual_text.txt
 data/full_manual_chunks.jsonl
 data/full_embeddings.parquet
 
-# Virtuell miljö
+## Virtuell miljö
 venv/
 .venv/
 Tips
