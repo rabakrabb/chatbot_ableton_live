@@ -1,4 +1,4 @@
-Chatbot Ableton Live — Version 2
+### Chatbot Ableton Live — Version 2
 Det här är version 2 av den RAG-baserade chatboten för Ableton Live 12 manualen.
 
 Funktioner
@@ -10,7 +10,7 @@ Streamlit-app med förbättrat gränssnitt och utökad funktionalitet.
 
 
 
-Installation och användning
+## Installation och användning
 
 
 1. Klona repot och byt till v2-mappen:
@@ -36,12 +36,12 @@ pip install -r requirements.txt
 
 Ini, TOML
 
-# .streamlit/secrets.toml
+.streamlit/secrets.toml
 API_KEY="din_google_genai_api_nyckel_har"
 
 
 
-Användning
+## Användning
 
 Förbered manualen och generera chunks:
 
@@ -60,14 +60,14 @@ Generera och spara embeddings (detta skapar full_embeddings.parquet):
 python generate_and_save_embeddings.py
 
 
-Kör appen:
+# Kör appen:
 
 streamlit run app.py
 
 Följ instruktionerna i webbläsaren för att ställa frågor.
 
 
-Struktur
+# Struktur
 
 app.py: Streamlit frontend.
 
