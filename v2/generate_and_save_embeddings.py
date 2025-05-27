@@ -8,8 +8,8 @@ import time
 load_dotenv() # Ladda API-nycklar
 
 def main():
-    jsonl_path = "full_manual_chunks.jsonl" # Din nya chunk-fil
-    output_parquet_path = "full_embeddings.parquet" # Fil där embeddings sparas
+    jsonl_path = r"data\full_manual_chunks.jsonl" # Din nya chunk-fil
+    output_parquet_path = r"data\full_embeddings.parquet" # Fil där embeddings sparas
 
     if os.path.exists(output_parquet_path):
         print(f"Embeddingsfilen '{output_parquet_path}' finns redan. Hoppar över generering.")

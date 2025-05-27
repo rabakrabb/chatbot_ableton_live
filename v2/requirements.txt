@@ -1,6 +1,7 @@
 google-generativeai
 numpy
 polars
+pyarrow
 pypdf
 python-dotenv
 streamlit

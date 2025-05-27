@@ -39,7 +39,7 @@ class VectorStore:
             })
         return results
 
-    def save(self, file_path: str = "embeddings.parquet"): # Nu korrekt indenterad
+    def save(self, file_path: str = r"data\embeddings.parquet"): # Nu korrekt indenterad
         df = pl.DataFrame(
             dict(
                 vectors=self.vectors,
@@ -50,7 +50,7 @@ class VectorStore:
         df.write_parquet(file_path)
         print(f"Vector store saved to {file_path}")
 
-    def load(self, file_path: str = "embeddings.parquet"): # Nu korrekt indenterad
+    def load(self, file_path: str = r"data\embeddings.parquet"): # Nu korrekt indenterad
         if not os.path.exists(file_path):
             print(f"Error: Vector store file not found at {file_path}")
             return False
