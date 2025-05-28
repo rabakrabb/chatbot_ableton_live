@@ -123,7 +123,8 @@ if page == "Chatbot":
         query_emb = create_embeddings([query])[0]
         results = vector_store.semantic_search(query_emb, k=5)
         top_texts = [r["text"] for r in results]
-        joined_texts = "\n\n".join([doc['content'] if isinstance(doc, dict) else doc.page_content for doc in top_texts])
+        joined_texts = "\n\n".join(top_texts)
+
         answer = generate_response(query, joined_texts, answer_language=answer_language)
         st.markdown("### Answer:")
         st.write(answer)
