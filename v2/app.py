@@ -191,7 +191,7 @@ elif page == "Evaluation":
     query_emb = create_embeddings([question])[0]
     results = vector_store.semantic_search(query_emb, k=15)
     top_texts = [r["text"] for r in results]
-    joined_texts = "\n\n".join([doc['content'] if isinstance(doc, dict) else doc.page_content for doc in top_texts])
+    joined_texts = "\n\n".join(top_texts)
     model_answer = generate_response(question, joined_texts, answer_language=answer_language)
 
 
